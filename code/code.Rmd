@@ -1,0 +1,143 @@
+---
+title: "Smoking and Asthma Analysis"
+author: "Your Name"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Packages
+```{r}
+# Load necessary packages
+target_packages <- c("dplyr", "ggplot2", "broom", "tidyr", "srvyr", "survey", "ipumsr", "here", "car", "kableExtra", "modelsummary", "margins")
+
+package.check <- lapply(
+  target_packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+)
+```
+
+## Load & Clean Data
+```{r}
+# Load dataset
+ddi <- read_ipums_ddi("nhis_00004.xml")
+data <- read_ipums_micro(ddi)
+
+# Select relevant variables
+data_cleaned <- data %>%
+  select(SMOKESTATUS2, ASTHATAKYR) %>%
+  filter(!is.na(SMOKESTATUS2) & !is.na(ASTHATAKYR)) %>%
+  mutate(
+    Smoking_Status = case_when(
+      SMOKESTATUS2 %in% c(10, 11, 12, 13) ~ "Current Smoker",
+      SMOKESTATUS2 == 20 ~ "Former Smoker",
+      SMOKESTATUS2 == 30 ~ "Never Smoked",
+      TRUE ~ "Unknown"
+    ),
+    Asthma_Attack = if_else(ASTHATAKYR > 0, 1, 0) # Convert Yes = 1, No = 0
+  )
+```
+
+## Summary Tables
+```{r}
+# Frequency Table
+summary_table <- data_cleaned %>%
+  group_by(Smoking_Status, Asthma_Attack) %>%
+  summarise(Count = n(), .groups = 'drop') %>%
+  pivot_wider(names_from = Asthma_Attack, values_from = Count, names_prefix = "Asthma_") %>%
+  kable(format = "html", caption = "Asthma Attack Cases by Smoking Status") %>%
+  kable_styling()
+
+print(summary_table)
+```
+
+## Visualization
+```{r}
+# Bar Chart: Asthma Attack Count by Smoking Status
+ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
+  geom_bar(position = "dodge") +
+  labs(title = "Asthma Attack Frequency by Smoking Status", x = "Smoking Status", y = "Count", fill = "Asthma Attack") +
+  theme_minimal() +
+  scale_fill_manual(values = c("#1f78b4", "#33a02c"))
+
+# Stacked Bar Chart: Proportion of Asthma Attacks per Smoking Category
+ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
+  geom_bar(position = "fill") +
+  labs(title = "Proportion of Asthma Attacks by Smoking Status", x = "Smoking Status", y = "Proportion", fill = "Asthma Attack") +
+  theme_minimal() +
+  scale_fill_manual(values = c("#1f78b4", "#33a02c"))
+
+# Facet Plot for Smoking Groups
+ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
+  geom_bar(position = "fill") +
+  facet_wrap(~ Smoking_Status) +
+  labs(title = "Asthma Attack Proportions by Smoking Status", x = "Smoking Status", y = "Proportion") +
+  theme_minimal()
+```
+
+## Statistical Analysis
+```{r}
+# Chi-Square Test
+chi_test <- chisq.test(table(data_cleaned$Smoking_Status, data_cleaned$Asthma_Attack))
+chi_test
+```
+
+## Logistic Regression Model
+```{r}
+# Run logistic regression
+logit_model <- glm(Asthma_Attack ~ Smoking_Status, data = data_cleaned, family = binomial())
+
+# Format with robust standard errors and p-values
+modelsummary(list("Logistic Regression" = logit_model), 
+             vcov = "robust", 
+             stars = c('*' = .1, '**' = .05, '***' = .01),
+             output = "html")
+```
+
+## Residual Plot for Logistic Regression
+```{r}
+# Extract residuals and fitted values
+residuals_data <- data.frame(
+  Fitted = fitted(logit_model),
+  Residuals = residuals(logit_model)
+)
+
+# Plot residuals
+ggplot(residuals_data, aes(x = Fitted, y = Residuals)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residual Plot: Logistic Regression", x = "Fitted Values", y = "Residuals") +
+  theme_minimal()
+```
+
+## Predicted Probabilities Distribution
+```{r}
+# Get predicted probabilities
+data_cleaned$pred_prob <- predict(logit_model, type = "response")
+
+# Plot histogram
+ggplot(data_cleaned, aes(x = pred_prob)) +
+  geom_histogram(binwidth = 0.05, fill = "blue", color = "black", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Predicted Probabilities", x = "Predicted Probability", y = "Count")
+```
+
+## Marginal Effects for Logistic Regression
+```{r}
+# Compute marginal effects for logistic regression
+marginal_effects <- margins(logit_model)
+
+# Summarize Average Marginal Effects
+summary(marginal_effects)
+```
+
+## Interpretation
+The logistic regression results above provide insights into the relationship between smoking status and the likelihood of having an asthma attack in the past 12 months. The confidence intervals and significance levels indicate the strength of this relationship. Further investigation can include additional covariates to control for confounding factors.

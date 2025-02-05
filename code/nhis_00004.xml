@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="ipums-ddi-xslt.xsl"?>
+<codeBook ID="ddi2-9e101b40-af16-013d-869a-02420a1c0306-nhis_00004.dat-nhis.ipums.org" version="2.5" xmlns="ddi:codebook:2_5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="ddi:codebook:2_5 http://www.ddialliance.org/Specification/DDI-Codebook/2.5/XMLSchema/codebook.xsd">
+  <docDscr>
+    <citation>
+      <titlStmt>
+        <titl>Codebook for an Integrated Health Interview Series Data Extract</titl>
+        <subTitl>DDI 2.5 metadata describing the extract file  'nhis_00004.dat'</subTitl>
+        <IDNo>ddi2-9e101b40-af16-013d-869a-02420a1c0306-nhis_00004.dat-nhis.ipums.org</IDNo>
+      </titlStmt>
+      <rspStmt>
+        <AuthEnty affiliation="University of Minnesota">IPUMS</AuthEnty>
+      </rspStmt>
+      <prodStmt>
+        <producer abbr="IPUMS" affiliation="University of Minnesota" role="Documentation">IPUMS</producer>
+        <prodDate date="2025-02-05">February 5, 2025</prodDate>
+        <prodPlac>IPUMS, 50 Willey Hall, 225 - 19th Avenue South, Minneapolis, MN 55455</prodPlac>
+      </prodStmt>
+      <distStmt>
+        <contact URI="https://ipums.org" affiliation="University of Minnesota">IPUMS</contact>
+      </distStmt>
+    </citation>
+  </docDscr>
+  <stdyDscr>
+    <citation>
+      <titlStmt>
+        <titl>User Extract nhis_00004.dat</titl>
+      </titlStmt>
+      <rspStmt>
+        <AuthEnty affiliation="University of Minnesota">IPUMS</AuthEnty>
+      </rspStmt>
+      <prodStmt>
+        <producer abbr="IPUMS" affiliation="University of Minnesota" role="Documentation">IPUMS</producer>
+        <prodDate date="2025-02-05">February 5, 2025</prodDate>
+        <prodPlac>IPUMS, 50 Willey Hall, 225 - 19th Avenue South, Minneapolis, MN 55455</prodPlac>
+      </prodStmt>
+      <distStmt>
+        <contact URI="https://ipums.org" affiliation="University of Minnesota">IPUMS</contact>
+      </distStmt>
+      <serStmt>
+        <serName abbr="nhis">IPUMS NHIS</serName>
+        <serInfo>DOI:10.18128/D070.V7.4</serInfo>
+      </serStmt>
+      <verStmt>
+        <version date="2025-02-05"/>
+      </verStmt>
+    </citation>
+    <stdyInfo>
+      <subject>
+        <topcClas vocab="IPUMS">Technical Household Variables -- HOUSEHOLD</topcClas>
+        <topcClas vocab="IPUMS">Technical Person Variables -- PERSON</topcClas>
+        <topcClas vocab="IPUMS">Asthma Variables -- PERSON</topcClas>
+        <topcClas vocab="IPUMS">Smoking Variables -- PERSON</topcClas>
+      </subject>
+      <sumDscr ID="sdatref-2445">
+        <timePrd date="2022" event="single">2022</timePrd>
+        <nation abbr="us">United States</nation>
+      </sumDscr>
+      <sumDscr ID="sdatref-2446">
+        <timePrd date="2023" event="single">2023</timePrd>
+        <nation abbr="us">United States</nation>
+      </sumDscr>
+      <notes><![CDATA[Additional notes on a sample that is part of this study:  2022 NHIS
+]]></notes>
+      <notes><![CDATA[Additional notes on a sample that is part of this study:  2023 NHIS
+]]></notes>
+    </stdyInfo>
+    <dataAccs>
+      <useStmt>
+        <confDec required="yes"><![CDATA[The Public Health Service Act (Section 308 (d)) provides that the data collected by the National Center for Health Statistics (NCHS), Centers for Disease Control and Prevention (CDC), may be used only for the purpose of health statistical reporting and analysis. Any effort to determine the identity of any reported case is prohibited by this law. NCHS does all it can to assure that the identity of data subjects cannot be disclosed. All direct identifiers, as well as any characteristics that might lead to identification, are omitted from the data files. Any intentional identification or disclosure of a person or establishment violates the assurances of confidentiality given to the providers of the information. 
+
+Therefore, users will: 
+
+Use the data in these data files for statistical reporting and analysis only. 
+
+Make no use of the identity of any person or establishment discovered inadvertently and advise the Director, NCHS, of any such discovery (301-458-4500). 
+
+Not link these data files with individually identifiable data from other NCHS or non-NCHS data files. 
+
+By using these data, you signify your agreement to comply with the above-stated statutorily-based requirements. ]]></confDec>
+        <contact URI="http://www.nhis.ipums.org/" affiliation="IPUMS">Integrated Health Interview Series</contact>
+        <citReq><![CDATA[Publications and research reports based on the NHIS database must cite it appropriately.  The citation is as follows:
+
+Lynn A. Blewett, Julia A. Rivera Drew, Miriam L. King, Kari C.W. Williams, Daniel Backman, Annie Chen, and Stephanie Richards. IPUMS Health Surveys: National Health Interview Survey, Version 7.4 [dataset]. Minneapolis, MN: IPUMS, 2024. https://doi.org/10.18128/D070.V7.4
+
+If possible, citations should also include the URL for the NHIS site:  http://www.nhis.ipums.org.
+
+Please see http://www.nhis.ipums.org/nhis/citation.shtml for precise formatting of the citation.]]></citReq>
+        <conditions><![CDATA[The Public Health Service Act (Section 308 (d)) provides that the data collected by the National Center for Health Statistics (NCHS), Centers for Disease Control and Prevention (CDC), may be used only for the purpose of health statistical reporting and analysis. Any effort to determine the identity of any reported case is prohibited by this law. NCHS does all it can to assure that the identity of data subjects cannot be disclosed. All direct identifiers, as well as any characteristics that might lead to identification, are omitted from the data files. Any intentional identification or disclosure of a person or establishment violates the assurances of confidentiality given to the providers of the information. 
+
+Therefore, users must: 
+
+Use the data in these data files for statistical reporting and analysis only. 
+
+Make no use of the identity of any person or establishment discovered inadvertently and advise the Director, NCHS, of any such discovery (301-458-4500). 
+
+Not link these data files with individually identifiable data from other NCHS or non-NCHS data files. 
+
+By using these data, you signify your agreement to comply with the above-stated statutorily-based requirements. 
+
+Furthermore, users of NHIS data must agree to abide by the conditions of use. Users must agree to the following conditions:
+  
+  
+(1) Use the data in these data files for statistical reporting and analysis only 
+
+(2) Make no use of the identity of any person or establishment discovered inadvertently and advise the Director of NCHS of any such discovery (301-458-4500) 
+
+(3) Do not link these data with individually-identifiable data from NCHS or non-NCHS data files 
+
+(4) No fees may be charged for use or distribution of the data.  All persons are granted a limited license to use and distribute these data, but you may not charge a fee for the data if you distribute them to others. 
+
+(5) Cite the NHIS appropriately.  Publications and research reports based on the database must cite it appropriately.  Please see http://www.nhis.ipums.org/nhis/citation.shtml
+
+(6) NHIS cannot be used to study small geographic areas.  The smallest geographical areas identified in the NHIS are regions (groups of states) and a limited number of metropolitan areas.
+
+(7) This system provides individual-level data only.  The NHIS Data Extraction System will not produce tables. You will need to use a statistical software package, such as Stata, SAS, or SPSS, to analyze the downloaded data.  Alternatively, you may use the NHIS-SDA tabulator to produce tables online, without making a data extract.]]></conditions>
+        <disclaimer>The user of the data acknowledges that the original collector of the data, the authorized distributor of the data, and the relevant funding agency bear no responsibility for use of the data or for interpretations or inferences based upon such uses.</disclaimer>
+      </useStmt>
+    </dataAccs>
+    <notes><![CDATA[User-provided description:  Smoking and Asthma
+]]></notes>
+  </stdyDscr>
+  <fileDscr ID="ExtractData">
+    <fileTxt>
+      <fileName>nhis_00004.dat</fileName>
+      <fileCont>Microdata records</fileCont>
+      <fileStrc type="rectangular"/>
+      <fileType charset="ISO-8859-1">ISO-8859-1 data file</fileType>
+      <format>fixed length fields</format>
+      <filePlac>IPUMS, 50 Willey Hall, 225 - 19th Avenue South, Minneapolis, MN 55455</filePlac>
+    </fileTxt>
+  </fileDscr>
+  <dataDscr><var ID="YEAR" dcml="0" files="ExtractData" intrvl="contin" name="YEAR">
+  <location EndPos="4" StartPos="1" width="4"/>
+  <labl>Survey year</labl>
+  <txt><![CDATA[YEAR is a four-digit variable reporting the calendar year (e.g., 2003) the survey was conducted and the data were collected. YEAR indicates the survey year reported on the household record.]]></txt>
+  <codInstr><![CDATA[This is a 4-digit numeric variable with 0 implied decimal places]]></codInstr>
+  <concept vocab="IPUMS">Technical Household Variables -- HOUSEHOLD</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="SERIAL" dcml="0" files="ExtractData" intrvl="contin" name="SERIAL">
+  <location EndPos="10" StartPos="5" width="6"/>
+  <labl>Sequential Serial Number, Household Record</labl>
+  <txt><![CDATA[SERIAL is an IPUMS NHIS-constructed value that is an identifying number unique to each household in a given survey year. The combination of YEAR and SERIAL provides a unique identifier for every household in the IPUMS NHIS database.]]></txt>
+  <codInstr><![CDATA[CodesSERIAL is a 6-digit numeric variable.]]></codInstr>
+  <concept vocab="IPUMS">Technical Household Variables -- HOUSEHOLD</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="STRATA" dcml="0" files="ExtractData" intrvl="contin" name="STRATA">
+  <location EndPos="14" StartPos="11" width="4"/>
+  <labl>Stratum for variance estimation</labl>
+  <txt><![CDATA[STRATA is an IPUMS NHIS-constructed variable based on the NHIS sample design variables in the public use files concatenated with a sample design period indicator. STRATA represents the impact of the sample design stratification on the estimates of variance and standard errors. It is constant within a sample design period and changes between sample design periods. For analysis, researchers need to use STRATA in conjunction with PSU to account for stratification and clustering when computing variance estimates with IPUMS NHIS data.
+
+See the User Notes on variance estimation for additional information.     
+
+After the 2019 redesign, there is no longer a sampling weight to produce household population estimates. See the user note on the calculation and use of sampling weights for additional information.]]></txt>
+  <codInstr><![CDATA[CodesSTRATA is a 5-digit numeric variable.
+
+000:	Not in Universe]]></codInstr>
+  <concept vocab="IPUMS">Technical Household Variables -- HOUSEHOLD</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="PSU" dcml="0" files="ExtractData" intrvl="contin" name="PSU">
+  <location EndPos="17" StartPos="15" width="3"/>
+  <labl>Primary sampling unit (PSU) for variance estimation</labl>
+  <txt><![CDATA[PSU is the primary sampling unit variable that represents the impact of the sample design clustering on the estimates of variance and standard errors. It is constant within a sample design period and changes between sample design periods. For analysis, researchers need to use PSU in conjunction with STRATA to account for stratification and clustering when computing variance estimates with IPUMS NHIS data.  
+
+See the User Notes on variance estimation for additional information.
+
+After the 2019 redesign, there is no longer a sampling weight to produce household population estimates. See the user note on the calculation and use of sampling weights for additional information.]]></txt>
+  <codInstr><![CDATA[CodesPSU is a 3-digit numeric variable.
+
+000:	Not in Universe]]></codInstr>
+  <concept vocab="IPUMS">Technical Household Variables -- HOUSEHOLD</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="NHISHID" dcml="0" files="ExtractData" intrvl="contin" name="NHISHID">
+  <location EndPos="31" StartPos="18" width="14"/>
+  <labl>NHIS Unique identifier, household</labl>
+  <txt><![CDATA[NHISHID is an IPUMS NHIS-constructed value that is an identifying number unique to each household in a given survey year. Using NHISHID, analysts can link IPUMS NHIS data with additional household-level data elements, from the NHIS source public use data files, that are not currently available in IPUMS.  NHISHID is a single variable constructed by concatenating multiple data elements from the NHIS source data files.  Analysts wishing to link person-level NHIS data should use the person-level linking key NHISPID.
+
+See the user note on LINKING for instructions on how to create links between IPUMS NHIS and NHIS source data.  
+
+After the 2019 redesign, there is no longer a sampling weight to produce household population estimates. See the user note on the calculation and use of sampling weights for additional information.]]></txt>
+  <codInstr><![CDATA[CodesNHISHID is a 14-character string variable.]]></codInstr>
+  <concept vocab="IPUMS">Technical Household Variables -- HOUSEHOLD</concept>
+  <varFormat schema="other" type="character"/>
+</var>
+<var ID="PERNUM" dcml="0" files="ExtractData" intrvl="contin" name="PERNUM">
+  <location EndPos="33" StartPos="32" width="2"/>
+  <labl>Person number within family/household (from reformatting)</labl>
+  <txt><![CDATA[PERNUM is an IPUMS NHIS-constructed variable that numbers all persons within each family or within each household consecutively (starting with "1") in the order in which they appear in the original NHIS data.  PERNUM was created by IPUMS NHIS during the process of reformatting the original NHIS public use files. 
+
+Prior to 2019, PERNUM numbers all persons within each family. Beginning in 2019, PERNUM numbers all person within a household and has a maximum of "2," as only the sample child and sample adult are identified in the original NHIS data. For more information, see the Comparability section.]]></txt>
+  <codInstr><![CDATA[CodesPERNUM is a 2-digit numeric variable.]]></codInstr>
+  <concept vocab="IPUMS">Technical Person Variables -- PERSON</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="NHISPID" dcml="0" files="ExtractData" intrvl="contin" name="NHISPID">
+  <location EndPos="49" StartPos="34" width="16"/>
+  <labl>NHIS Unique Identifier, person</labl>
+  <txt><![CDATA[NHISPID is an IPUMS NHIS-constructed value that is an identifying number unique to each person in a given survey year.  Using NHISPID, analysts can link IPUMS NHIS data with additional data elements, from the NHIS source public use data files, that are not currently available in IPUMS.  For example, researchers can use NHISPID to link variables in IPUMS NHIS with other variables from the core NHIS files variables.  Alternatively, users may use NHISPID to link variables from IPUMS with variables from NHIS supplements that are not yet part of IPUMS NHIS. NHISPID is a single variable constructed by concatenating multiple data elements from the NHIS source data files.  
+
+Analysts wishing to link household-level NHIS data should use the household-level linking key NHISHID.
+
+See the user note on LINKING for instructions on how to create links between IPUMS NHIS and NHIS source data.]]></txt>
+  <codInstr><![CDATA[CodesNHISPID is a 16-character string variable.]]></codInstr>
+  <concept vocab="IPUMS">Technical Person Variables -- PERSON</concept>
+  <varFormat schema="other" type="character"/>
+</var>
+<var ID="HHX" dcml="0" files="ExtractData" intrvl="contin" name="HHX">
+  <location EndPos="56" StartPos="50" width="7"/>
+  <labl>Household number (from NHIS)</labl>
+  <txt><![CDATA[For sample adults and sample children, HHX reports the person's household number on the original NHIS data. HHX is unique within sample but only unique across samples when combined with information on year. Prior to 2019, this variable was available for all persons.]]></txt>
+  <codInstr><![CDATA[This is a 7-digit numeric variable with 0 implied decimal places]]></codInstr>
+  <concept vocab="IPUMS">Technical Person Variables -- PERSON</concept>
+  <varFormat schema="other" type="character"/>
+</var>
+<var ID="SAMPWEIGHT" dcml="3" files="ExtractData" intrvl="contin" name="SAMPWEIGHT">
+  <location EndPos="68" StartPos="57" width="12"/>
+  <labl>Sample Person Weight</labl>
+  <txt><![CDATA[SAMPWEIGHT is an IPUMS NHIS-constructed variable that represents, with a few exceptions, the random selection of a sample person in the household to complete a supplement survey.  (The exceptions to this generalization are the 1983 health insurance supplement and 1993 health insurance, access to care, and family resources supplements, which were asked of all persons in the second half of the year.)
+
+For survey years 1997 forward, SAMPWEIGHT is based on the Final Annual Sample Adult and Sample Child Weights in the original NHIS public use files. This weight should be used with variables taken from the sample adult or sample child supplements for 1997 on (as indicated by the supplement title in the "Source" section toward the top of each variable description). 
+
+SAMPWEIGHT also contains the sampling weights for a subset of the pre-1997 supplements, for which the definition of a sample person, and the rules governing the selection of sample persons, are less consistent. The universe statements for SAMPWEIGHT document who was included in the supplements requiring use of this weight on a year-by-year basis. SAMPWEIGHT consistently represents the inverse probability of selection into a supplement, adjusted for non-response with additional post-stratification adjustments for age, race/ethnicity, and sex using the Census Bureau's population control totals.
+
+Users should review the documentation for extracted variables--most notably the "Weights" section toward the top of each variable description--to ascertain which weight is the appropriate choice for a given survey year. See the User Notes on the use of sampling weights for additional information.]]></txt>
+  <codInstr><![CDATA[CodesSAMPWEIGHT is a 12-digit numeric variable with three implied decimals. That is, values of 012345678912 should be interpreted as 12345678.912. The command files delivered with IPUMS extracts automatically divide SAMPWEIGHT by 1,000, so no further adjustment is needed.]]></codInstr>
+  <concept vocab="IPUMS">Technical Person Variables -- PERSON</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="ASTATFLG" dcml="0" files="ExtractData" intrvl="discrete" name="ASTATFLG">
+  <location EndPos="69" StartPos="69" width="1"/>
+  <labl>Sample adult flag</labl>
+  <txt><![CDATA[ASTATFLG identifies the record of a sample adult. A sample adult is the one person over age 18 per household who is randomly selected to complete the sample adult questionnaire. For 1997-2018, a sample adult is the one adult per family who was selected at random by the computerized survey instrument to answer additional health-related questions, under the survey design instituted in 1997.  All persons other than sample adults (those not having the value 1 in ASTATFLG) are coded as "not in universe" for variables derived from the additional questions asked only of sample adults.  (Some additional questions were asked of both sample adults and sample children.)  Every adult in each family, except for active duty armed forces members, was eligible to be selected as the sample adult.  
+
+Prior to 2019, ASTATFLG has the value "no one selected as sample adult" (code 4) for all adults in the family in the following two cases: 1) sample adult status was incorrectly assigned to someone in the armed forces, or 2) it could not be ascertained which adult in the family was chosen as sample adult.   
+
+For 2020 only, SALNGPRTFLG further distinguishes between sample adults included in the longitudinal sample and sample adults included in the partial sample. Please see the user note on COVID-related changes to the NHIS for more information on the longitudinal and partial samples.
+
+A similar flag variable, CSTATFLG, identifies the record of a sample child.
+
+This variable is automatically included in all extracts, but only has valid values for 1997 forward.]]></txt>
+  <catgry>
+    <catValu>0</catValu>
+    <labl>NIU</labl>
+  </catgry>
+  <catgry>
+    <catValu>1</catValu>
+    <labl>Sample adult, has record</labl>
+  </catgry>
+  <catgry>
+    <catValu>2</catValu>
+    <labl>Sample adult, no record</labl>
+  </catgry>
+  <catgry>
+    <catValu>3</catValu>
+    <labl>Not selected as sample adult</labl>
+  </catgry>
+  <catgry>
+    <catValu>4</catValu>
+    <labl>No one selected as sample adult</labl>
+  </catgry>
+  <catgry>
+    <catValu>5</catValu>
+    <labl>Armed forces member</labl>
+  </catgry>
+  <catgry>
+    <catValu>6</catValu>
+    <labl>AF member, selected as sample adult</labl>
+  </catgry>
+  <concept vocab="IPUMS">Technical Person Variables -- PERSON</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="CSTATFLG" dcml="0" files="ExtractData" intrvl="discrete" name="CSTATFLG">
+  <location EndPos="70" StartPos="70" width="1"/>
+  <labl>Sample child flag</labl>
+  <txt><![CDATA[CSTATFLG identifies the record of a sample child. A sample child is the one person under age 18 per household who is randomly selected to complete the sample child questionnaire. For 1997-2018, the sample child is the one person under age 18 per family who was selected at random by the computerized survey instrument for additional health-related questions, under the survey design instituted in 1997. All persons other than sample children (those not having the value 1 in CSTATFLG) are coded as "not in universe" for variables derived from these additional questions asked only of sample children.  (Some additional questions were asked of both sample adults and sample children.)   
+
+Prior to 2019, Every child in each family, except for active duty armed forces members and emancipated minors, was eligible to be selected as the sample child.  Emancipated minors are persons age 14 to 17 who are married or living with a partner OR who live on their own without the supervision of a parent, other adult family member, or legal guardian.  
+
+CSTATFLG has the value "no one selected as sample child" (code 4) for all children in the family in the following two cases prior to 2019: 1) if sample child status was incorrectly assigned to someone who was ineligible, or 2) if it was unknown which child in the family was chosen as sample child.   
+
+A similar flag variable, ASTATFLG, identifies the record of a sample adult.
+
+This variable is automatically included in all extracts, but only has valid values for 1997 forward.]]></txt>
+  <catgry>
+    <catValu>0</catValu>
+    <labl>NIU</labl>
+  </catgry>
+  <catgry>
+    <catValu>1</catValu>
+    <labl>Sample child-has record</labl>
+  </catgry>
+  <catgry>
+    <catValu>2</catValu>
+    <labl>Sample child-no record</labl>
+  </catgry>
+  <catgry>
+    <catValu>3</catValu>
+    <labl>Not selected as sample child</labl>
+  </catgry>
+  <catgry>
+    <catValu>4</catValu>
+    <labl>No one selected as sample child</labl>
+  </catgry>
+  <catgry>
+    <catValu>5</catValu>
+    <labl>Emancipated minor</labl>
+  </catgry>
+  <concept vocab="IPUMS">Technical Person Variables -- PERSON</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="ASTHATAKYR" dcml="0" files="ExtractData" intrvl="discrete" name="ASTHATAKYR">
+  <location EndPos="71" StartPos="71" width="1"/>
+  <labl>Had asthma attack/episode, past 12 months</labl>
+  <txt><![CDATA[For sample adults and sample children who were ever told by a doctor or other health professional that they had asthma (ASTHMAEV), ASTHATAKYR identifies those who had an asthma attack/episode during the past 12 months. 
+
+Those who responded affirmatively to ASTHATAKYR were asked a follow-up question about whether they "had to visit an emergency room or urgent care center because of asthma" during the past 12 months (ASTHERYR).
+
+Other asthma-related questions were periodically included in the survey; see ASTHMAEV for a summary of these variables currently in the IPUMS NHIS.]]></txt>
+  <catgry>
+    <catValu>0</catValu>
+    <labl>NIU</labl>
+  </catgry>
+  <catgry>
+    <catValu>1</catValu>
+    <labl>No</labl>
+  </catgry>
+  <catgry>
+    <catValu>2</catValu>
+    <labl>Yes</labl>
+  </catgry>
+  <catgry>
+    <catValu>7</catValu>
+    <labl>Unknown--refused</labl>
+  </catgry>
+  <catgry>
+    <catValu>8</catValu>
+    <labl>Unknown--not ascertained</labl>
+  </catgry>
+  <catgry>
+    <catValu>9</catValu>
+    <labl>Unknown--don't know</labl>
+  </catgry>
+  <concept vocab="IPUMS">Asthma Variables -- PERSON</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+<var ID="SMOKESTATUS2" dcml="0" files="ExtractData" intrvl="discrete" name="SMOKESTATUS2">
+  <location EndPos="73" StartPos="72" width="2"/>
+  <labl>Cigarette smoking recode 2: Current detailed/former/never</labl>
+  <txt><![CDATA[For sample adults 18 and over, this is a recoded variable indicating the respondent's current smoking status in categories of current smoker, every day current smoker, some day current smoker, current smoker--unknown frequency of smoking, and also indicates former smoker, never smoked and "has smoked, current smoking status unknown."
+&nbsp;In this variable, current smokers were divided into "every day" smokers or "some days" smokers.  The process to classify respondents into these categories changed slightly between 1991 and 1992 forward.  In 1991, ever smokers were asked if they smoke now; respondents who said "yes" were asked if they smoked "every day" or "some days.  Respondents who answered "no" were asked, "Do you smoke some days or not at all?" This additional follow-up resulted in the classification of persons as "someday smokers" who would otherwise have been considered former smokers, since they initially said that they did not smoke now. 
+
+In 1992, questions on smoking status were included in two sections of the survey; in the  Cancer Control section, the same three questions from in the 1991 questionnaire were used; in the Cancer Epidemiology section, just two questions were used: "Have you smoked at least 100 cigarettes during your entire life?" If yes, "Do you NOW smoke cigarettes every day, some days, or not at all?" Use of both sets of questions allowed for estimation of the impact of the question change on population prevalence. The revised current smoking status question was estimated to have resulted in an increase in smoking prevalence of about 1 percent-- a result occurring mainly from capturing smoking among persons who would otherwise have been classified as nonsmokers with the original question.
+
+This version of the question was used from 1992 forward.Related Variables]]></txt>
+  <catgry>
+    <catValu>00</catValu>
+    <labl>NIU</labl>
+  </catgry>
+  <catgry>
+    <catValu>10</catValu>
+    <labl>Current smoker</labl>
+  </catgry>
+  <catgry>
+    <catValu>11</catValu>
+    <labl>Current every day smoker</labl>
+  </catgry>
+  <catgry>
+    <catValu>12</catValu>
+    <labl>Current some day smoker</labl>
+  </catgry>
+  <catgry>
+    <catValu>13</catValu>
+    <labl>Current smoker, unknown how often smokes</labl>
+  </catgry>
+  <catgry>
+    <catValu>20</catValu>
+    <labl>Former smoker</labl>
+  </catgry>
+  <catgry>
+    <catValu>30</catValu>
+    <labl>Never smoked</labl>
+  </catgry>
+  <catgry>
+    <catValu>40</catValu>
+    <labl>Has smoked, current smoking status unknown</labl>
+  </catgry>
+  <catgry>
+    <catValu>90</catValu>
+    <labl>Unknown if ever smoked</labl>
+  </catgry>
+  <concept vocab="IPUMS">Smoking Variables -- PERSON</concept>
+  <varFormat schema="other" type="numeric"/>
+</var>
+</dataDscr>
+</codeBook>
