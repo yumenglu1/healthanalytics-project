@@ -36,7 +36,7 @@ data_cleaned <- data %>%
   select(SMOKESTATUS2, ASTHMAEV, CIGSDAY2) %>%
   filter(!is.na(SMOKESTATUS2) & !is.na(ASTHMAEV)) %>%
   mutate(
-    # 定义吸烟状态
+    # Define smoking status
     Smoking_Status = case_when(
       SMOKESTATUS2 %in% c(10, 11, 12, 13) ~ "Current Smoker",
       SMOKESTATUS2 == 20 ~ "Former Smoker",
@@ -44,16 +44,16 @@ data_cleaned <- data %>%
       SMOKESTATUS2 %in% c(40, 90) ~ "Unknown",
       TRUE ~ "Unknown"
     ),
-    # 定义每日吸烟量分类（仅针对当前吸烟者）
+    # Define the number of cigarette for the current smoker
     Smoking_Intensity = case_when(
       Smoking_Status == "Current Smoker" & CIGSDAY2 <= 5 ~ "Current Smoker (Light)",
       Smoking_Status == "Current Smoker" & CIGSDAY2 <= 10 ~ "Current Smoker (Moderate)",
       Smoking_Status == "Current Smoker" & CIGSDAY2 > 10 ~ "Current Smoker (Heavy)",
-      TRUE ~ Smoking_Status  # 非当前吸烟者保持原状态
+      TRUE ~ Smoking_Status  
     ),
     Asthma_Attack = if_else(ASTHMAEV == 2, 1, 0)
   ) %>%
-  # 将 Never Smoked 设为参考组
+  # Set nonsmoker as control group
   mutate(
     Smoking_Intensity = factor(Smoking_Intensity),
     Smoking_Intensity = relevel(Smoking_Intensity, ref = "Never Smoked")
