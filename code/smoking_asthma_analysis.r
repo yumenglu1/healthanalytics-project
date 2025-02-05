@@ -73,3 +73,62 @@ model_er <- svyglm(
   family = quasibinomial()
 )
 summary(model_er)
+
+
+library(kableExtra)
+
+# Table 1: Smoking Levels Distribution
+smoking_table <- filtered_data %>%
+  group_by(smoking_combined) %>%
+  summarise(Count = n()) %>%
+  kable(format = "html", caption = "Distribution of Smoking Levels") %>%
+  kable_styling()
+
+print(smoking_table)
+
+# Table 2: Asthma vs. Smoking Level
+asthma_table <- filtered_data %>%
+  group_by(smoking_combined, has_asthma) %>%
+  summarise(Count = n()) %>%
+  pivot_wider(names_from = has_asthma, values_from = Count, names_prefix = "Asthma_") %>%
+  kable(format = "html", caption = "Asthma Cases by Smoking Level") %>%
+  kable_styling()
+
+print(asthma_table)
+
+# Table 3: ER Visits vs. Smoking Level
+er_table <- filtered_data %>%
+  group_by(smoking_combined, visited_er) %>%
+  summarise(Count = n()) %>%
+  pivot_wider(names_from = visited_er, values_from = Count, names_prefix = "ER_") %>%
+  kable(format = "html", caption = "ER Visits by Smoking Level") %>%
+  kable_styling()
+
+print(er_table)
+
+
+library(ggplot2)
+
+ggplot(filtered_data, aes(x = smoking_combined)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Distribution of Smoking Levels", x = "Smoking Level", y = "Count") +
+  theme_minimal()
+
+ggplot(filtered_data, aes(x = smoking_combined, fill = factor(has_asthma))) +
+  geom_bar(position = "fill") +  # Stacked bar chart normalized
+  labs(title = "Asthma Prevalence by Smoking Level", x = "Smoking Level", y = "Proportion", fill = "Has Asthma") +
+  theme_minimal()
+
+ggplot(filtered_data, aes(x = smoking_combined, fill = factor(visited_er))) +
+  geom_bar(position = "fill") +  
+  labs(title = "ER Visits by Smoking Level", x = "Smoking Level", y = "Proportion", fill = "Visited ER") +
+  theme_minimal()
+
+library(modelsummary)
+
+models <- list(
+  "Asthma Model" = model_asthma,
+  "ER Visits Model" = model_er
+)
+
+modelsummary(models, output = "markdown")
