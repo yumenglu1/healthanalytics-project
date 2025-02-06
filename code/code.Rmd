@@ -229,6 +229,9 @@ modelsummary(
   stars = c('*' = .1, '**' = .05, '***' = .01),
   output = "html"
 )
+```
+## Multicollinearity Test
+```{r}
 # Logistic 
 model_interaction <- glm(Asthma_Attack ~ Smoking_Intensity * region + 
                          age + gender + education + income,
@@ -247,7 +250,79 @@ model_no_interaction <- glm(Asthma_Attack ~ Smoking_Intensity + region +
 
 summary(model_no_interaction)
 vif(model_no_interaction)
-#
+# We find that multicollinearity has been significantly reduced after change to the noninteraction model, which means the interaction term introduced multicollinearity, inflating standard errors 
+```
+## Robustness Checks
+```{r}
+# Probit regress
+model_probit <- glm(Asthma_Attack ~ Smoking_Intensity + 
+                    age + gender + education + income,
+                    data = data_cleaned, family = binomial(link = "probit"))
+
+summary(model_probit)
+
+# LPM regress
+model_lpm <- lm(Asthma_Attack ~ Smoking_Intensity + 
+                age + gender + education + income,
+                data = data_cleaned)
+
+summary(model_lpm)
+
+library(sandwich)
+library(lmtest)
+
+# Cluster SE
+model_clustered <- glm(Asthma_Attack ~ Smoking_Intensity * region + 
+                       age + gender + education + income,
+                       data = data_cleaned, family = binomial)
+
+coeftest(model_clustered, vcov = vcovCL, cluster = ~region)
+```
+## Heterogeneity Test
+```{r}
+# Define a function to run logistic regression and return ORs
+run_logit_by_region <- function(region_name) {
+  model <- glm(Asthma_Attack ~ Smoking_Intensity + age + gender + education + income, 
+               data = data_cleaned %>% filter(region == region_name), 
+               family = binomial)
+  
+  # Extract coefficients, standard errors, and p-values
+  tidy_model <- tidy(model) %>%
+    mutate(region = region_name,
+           OR = exp(estimate),  # Convert to Odds Ratio
+           OR_low = exp(estimate - 1.96 * std.error),  # 95% CI Lower Bound
+           OR_high = exp(estimate + 1.96 * std.error), # 95% CI Upper Bound
+           p_value = case_when(
+             p.value < 0.001 ~ "***",
+             p.value < 0.01 ~ "**",
+             p.value < 0.05 ~ "*",
+             p.value < 0.1 ~ ".",
+             TRUE ~ ""
+           ),
+           OR_formatted = paste0(round(OR, 2), " [", 
+                                 round(OR_low, 2), ", ", 
+                                 round(OR_high, 2), "] ", p_value))
+  
+  return(tidy_model)
+}
+
+# Run logistic regressions for each region
+regions <- c("Northeast", "Midwest", "South", "West")
+results_list <- lapply(regions, run_logit_by_region)
+
+# Combine results into a single dataframe
+results_df <- bind_rows(results_list)
+
+# Pivot the results to make a side-by-side comparison table
+results_table <- results_df %>%
+  select(term, region, OR_formatted) %>%
+  pivot_wider(names_from = region, values_from = OR_formatted)
+
+# Create a nicely formatted table using kableExtra
+results_table %>%
+  kable("html", caption = "Odds Ratios (OR) for Asthma Across Regions") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
+
 ```
 
 ## Residual Plot for Logistic Regression
