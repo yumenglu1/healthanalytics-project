@@ -36,6 +36,11 @@ data_cleaned <- data %>%
   select(SMOKESTATUS2, ASTHMAEV, CIGSDAY2) %>%
   filter(!is.na(SMOKESTATUS2) & !is.na(ASTHMAEV)) %>%
   mutate(
+    CIGSDAY2_cleaned = case_when(
+      CIGSDAY2 %in% c(97, 98, 99) ~ NA_real_,   # Keep these as NIU
+      CIGSDAY2 == 95 ~ 95,                      # Keep 95
+      TRUE ~ as.numeric(CIGSDAY2)               # Keep other number
+    ),
     # Define smoking status
     Smoking_Status = case_when(
       SMOKESTATUS2 %in% c(10, 11, 12, 13) ~ "Current Smoker",
