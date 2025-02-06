@@ -324,7 +324,51 @@ results_table %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
 
 ```
+## Heterogeneity Test for the sex
+```{r}
+# Define a function to run logistic regression and return ORs
+run_logit_by_gender <- function(gender_name) {
+  model <- glm(Asthma_Attack ~ Smoking_Intensity + age + education + income + region, 
+               data = data_cleaned %>% filter(gender == gender_name), 
+               family = binomial)
+  
+  # Extract coefficients, standard errors, and p-values
+  tidy_model <- tidy(model) %>%
+    mutate(gender = gender_name,
+           OR = exp(estimate),  # Convert to Odds Ratio
+           OR_low = exp(estimate - 1.96 * std.error),  # 95% CI Lower Bound
+           OR_high = exp(estimate + 1.96 * std.error), # 95% CI Upper Bound
+           p_value = case_when(
+             p.value < 0.001 ~ "***",
+             p.value < 0.01 ~ "**",
+             p.value < 0.05 ~ "*",
+             p.value < 0.1 ~ ".",
+             TRUE ~ ""
+           ),
+           OR_formatted = paste0(round(OR, 2), " [", 
+                                 round(OR_low, 2), ", ", 
+                                 round(OR_high, 2), "] ", p_value))
+  
+  return(tidy_model)
+}
 
+# Run logistic regressions for Male and Female separately
+genders <- c("Male", "Female")
+results_list <- lapply(genders, run_logit_by_gender)
+
+# Combine results into a single dataframe
+results_df <- bind_rows(results_list)
+
+# Pivot the results to make a side-by-side comparison table
+results_table <- results_df %>%
+  select(term, gender, OR_formatted) %>%
+  pivot_wider(names_from = gender, values_from = OR_formatted)
+
+# Create a nicely formatted table using kableExtra
+results_table %>%
+  kable("html", caption = "Odds Ratios (OR) for Asthma by Gender") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
+```
 ## Residual Plot for Logistic Regression
 ```{r}
 # Extract residuals and fitted values
