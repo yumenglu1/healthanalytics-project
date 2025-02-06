@@ -30,13 +30,12 @@ package.check <- lapply(
 ## Load & Clean Data
 ```{r}
 # Load dataset
-ddi <- read_ipums_ddi("nhis_00012.xml")
+ddi <- read_ipums_ddi("nhis_00010.xml")
 data <- read_ipums_micro(ddi)
 
 # Select relevant variables
 data_cleaned <- data %>%
-   select(SMOKESTATUS2, ASTHMAEV, CIGSDAY2, 
-         AGE, SEX, EDUC, GOTWAGE, REGION) %>%
+  select(SMOKESTATUS2, ASTHMAEV, CIGSDAY2) %>%
   filter(!is.na(SMOKESTATUS2) & !is.na(ASTHMAEV)) %>%
   mutate(
     CIGSDAY2_cleaned = case_when(
@@ -59,53 +58,12 @@ data_cleaned <- data %>%
       Smoking_Status == "Current Smoker" & CIGSDAY2 > 10 ~ "Current Smoker (Heavy)",
       TRUE ~ Smoking_Status  
     ),
-    Asthma_Attack = if_else(ASTHMAEV == 2, 1, 0),
-    # Age (AGE)
-    age = case_when(
-      AGE %in% c(997, 998, 999) ~ NA_real_,  # Set unknown ages to missing
-      AGE %in% c(085, 090, 099) ~ 85,        # Recode top-coded ages (85+)
-      TRUE ~ as.numeric(AGE)                 # Keep other ages as numeric
-    ),
-    
-    # Gender (SEX)
-    gender = factor(case_when(
-      SEX == 1 ~ "Male",
-      SEX == 2 ~ "Female",
-      TRUE ~ NA_character_  # Set unknown genders to missing
-    ), levels = c("Male", "Female")),
-    
-    # Education (EDU)
-    education = factor(case_when(
-      EDUC %in% c(400, 501, 503, 505) ~ "Bachelor+",  # Bachelor's degree or higher
-      EDUC %in% c(100:116, 200:303) ~ "No Bachelor",  # No bachelor's degree
-      TRUE ~ NA_character_  # Set unknown education to missing
-    ), levels = c("No Bachelor", "Bachelor+")),
-    
-    # Income (GOTWAGE)
-    income = factor(case_when(
-      GOTWAGE == 2 ~ "Yes",  # Has wage income
-      GOTWAGE == 1 ~ "No",   # No wage income
-      TRUE ~ NA_character_   # Set unknown income to missing
-    ), levels = c("No", "Yes")),
-    
-    # Region (REGION)
-    region = factor(case_when(
-      REGION == 1 ~ "Northeast",
-      REGION == 2 ~ "Midwest",
-      REGION == 3 ~ "South",
-      REGION == 4 ~ "West",
-      TRUE ~ NA_character_  # Set unknown regions to missing
-    ), levels = c("Northeast", "Midwest", "South", "West"))
+    Asthma_Attack = if_else(ASTHMAEV == 2, 1, 0)
   ) %>%
-    # Remove rows with missing control variables
-  filter(!is.na(age) & !is.na(gender) & !is.na(education) & 
-         !is.na(income) & !is.na(region)) %>%
-   # Set reference groups
+  # Set nonsmoker as control group
   mutate(
-    Smoking_Intensity = relevel(factor(Smoking_Intensity), ref = "Never Smoked"),
-    education = relevel(education, ref = "No Bachelor"),  # Reference: No bachelor's degree
-    income = relevel(income, ref = "No"),                # Reference: No wage income
-    region = relevel(region, ref = "Northeast")          # Reference: Northeast region
+    Smoking_Intensity = factor(Smoking_Intensity),
+    Smoking_Intensity = relevel(Smoking_Intensity, ref = "Never Smoked")
   )
 ```
 
@@ -130,12 +88,12 @@ combined_table <- data_cleaned %>%
     N = n(),
     Asthma_No = sum(Asthma_Attack == 0, na.rm = TRUE),
     Asthma_Yes = sum(Asthma_Attack == 1, na.rm = TRUE),
-    Mean_CIGSDAY = mean(CIGSDAY2_cleaned, na.rm = TRUE),
-    SD_CIGSDAY = sd(CIGSDAY2_cleaned, na.rm = TRUE),
-    Median_CIGSDAY = median(CIGSDAY2_cleaned, na.rm = TRUE),
-    IQR_CIGSDAY = IQR(CIGSDAY2_cleaned, na.rm = TRUE),
-    Min_CIGSDAY = min(CIGSDAY2_cleaned, na.rm = TRUE),
-    Max_CIGSDAY = max(CIGSDAY2_cleaned, na.rm = TRUE),
+    Mean_CIGSDAY = mean(CIGSDAY2, na.rm = TRUE),
+    SD_CIGSDAY = sd(CIGSDAY2, na.rm = TRUE),
+    Median_CIGSDAY = median(CIGSDAY2, na.rm = TRUE),
+    IQR_CIGSDAY = IQR(CIGSDAY2, na.rm = TRUE),
+    Min_CIGSDAY = min(CIGSDAY2, na.rm = TRUE),
+    Max_CIGSDAY = max(CIGSDAY2, na.rm = TRUE),
     Percent_with_Asthma = mean(Asthma_Attack, na.rm = TRUE) * 100,
     .groups = "drop"
   )
@@ -176,26 +134,35 @@ print(final_table)
 
 ## Visualization
 ```{r}
-# Bar Chart: Asthma Attack Count by Smoking Status
-ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
+
+
+# Recode Asthma_Attack to be more interpretable
+data_cleaned <- data_cleaned %>%
+  mutate(Asthma_Attack_Factor = factor(Asthma_Attack, 
+                                        levels = c(0,1), 
+                                        labels = c("No Asthma Attack", "Asthma Attack")))
+
+# 1. Grouped Bar Chart: Count of Asthma Attacks by Smoking_Intensity
+ggplot(data_cleaned, aes(x = Smoking_Intensity, fill = Asthma_Attack_Factor)) +
   geom_bar(position = "dodge") +
-  labs(title = "Asthma Attack Frequency by Smoking Status", x = "Smoking Status", y = "Count", fill = "Asthma Attack") +
+  labs(title = "Asthma Attack Frequency by Smoking Intensity", 
+       x = "Smoking Intensity", 
+       y = "Count", 
+       fill = "Asthma Attack") +
   theme_minimal() +
-  scale_fill_manual(values = c("#1f78b4", "#33a02c"))
+  scale_fill_manual(values = c("#1f78b4", "#33a02c")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-# Stacked Bar Chart: Proportion of Asthma Attacks per Smoking Category
-ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
+# 2. Stacked Bar Chart: Proportion of Asthma Attacks by Smoking_Intensity
+ggplot(data_cleaned, aes(x = Smoking_Intensity, fill = Asthma_Attack_Factor)) +
   geom_bar(position = "fill") +
-  labs(title = "Proportion of Asthma Attacks by Smoking Status", x = "Smoking Status", y = "Proportion", fill = "Asthma Attack") +
+  labs(title = "Proportion of Asthma Attacks by Smoking Intensity", 
+       x = "Smoking Intensity", 
+       y = "Proportion", 
+       fill = "Asthma Attack") +
   theme_minimal() +
-  scale_fill_manual(values = c("#1f78b4", "#33a02c"))
-
-# Facet Plot for Smoking Groups
-ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
-  geom_bar(position = "fill") +
-  facet_wrap(~ Smoking_Status) +
-  labs(title = "Asthma Attack Proportions by Smoking Status", x = "Smoking Status", y = "Proportion") +
-  theme_minimal()
+  scale_fill_manual(values = c("#1f78b4", "#33a02c")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 ## Statistical Analysis
@@ -207,47 +174,59 @@ chi_test
 
 ## Logistic Regression Model
 ```{r}
-# Run logistic regression
+library(modelsummary)
+library(kableExtra)
+library(tibble)
+
+# Run logistic regression using Smoking_Intensity (with detailed categories)
 logit_model <- glm(
-  Asthma_Attack ~ Smoking_Intensity + gender + age + income + education + region, 
+  Asthma_Attack ~ Smoking_Intensity, 
   data = data_cleaned, 
   family = binomial()
 )
 
-# Format with robust standard errors and p-values
-modelsummary(
-  list("Logistic Regression" = logit_model),
-  exponentiate = TRUE, 
-  stars = c('*' = .1, '**' = .05, '***' = .01),
-  output = "html"
+# Create a mapping of raw coefficient names to natural language labels.
+coef_map <- c(
+  `(Intercept)` = "Intercept",
+  "Smoking_IntensityCurrent Smoker (Light)" = "Current Smoker (Light)",
+  "Smoking_IntensityCurrent Smoker (Moderate)" = "Current Smoker (Moderate)",
+  "Smoking_IntensityCurrent Smoker (Heavy)" = "Current Smoker (Heavy)",
+  "Smoking_IntensityFormer Smoker" = "Former Smoker",
+  "Smoking_IntensityNever Smoked" = "Never Smoked",
+  "Smoking_IntensityUnknown" = "Unknown"
 )
-# To compare with the robust standard error
-modelsummary(
-  list("Logistic Regression" = logit_model),
-  exponentiate = TRUE, 
+
+# Create a mapping of goodness-of-fit statistics with natural language labels.
+gof_map <- tribble(
+  ~raw,         ~clean,                             ~fmt,    ~dec, ~drop,
+  "AIC",        "Akaike Information Criterion",     "%.2f", 2,    FALSE,
+  "BIC",        "Bayesian Information Criterion",   "%.2f", 2,    FALSE,
+  "Log.Lik.",   "Log-Likelihood",                   "%.2f", 2,    FALSE,
+  "N",          "Observations",                     "%.0f", 0,    FALSE
+)
+
+# Generate a single standardized table with robust standard errors,
+# exponentiated coefficients (odds ratios), and natural language labels.
+model_table <- modelsummary(
+  logit_model,
   vcov = "robust",
-  stars = c('*' = .1, '**' = .05, '***' = .01),
-  output = "html"
+  exponentiate = TRUE,
+  coef_map = coef_map,
+  gof_map = gof_map,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  output = "kableExtra",
+  title = "Logistic Regression Results with Robust Standard Errors"
 )
-# Logistic 
-model_interaction <- glm(Asthma_Attack ~ Smoking_Intensity * region + 
-                         age + gender + education + income,
-                         data = data_cleaned, family = binomial)
 
-summary(model_interaction)
-library(car)
-vif_model <- glm(Asthma_Attack ~ Smoking_Intensity * region + age + gender + education + income,
-                 data = data_cleaned, family = binomial)
+# Apply kableExtra styling to match your other tables:
+model_table <- kable_styling(
+  model_table, 
+  bootstrap_options = c("striped", "hover", "condensed"),
+  full_width = FALSE, 
+  position = "center"
+)
 
-vif(vif_model)  
-
-model_no_interaction <- glm(Asthma_Attack ~ Smoking_Intensity + region + 
-                            age + gender + education + income,
-                            data = data_cleaned, family = binomial)
-
-summary(model_no_interaction)
-vif(model_no_interaction)
-#After 
+print(model_table)
 ```
 
 ## Residual Plot for Logistic Regression
