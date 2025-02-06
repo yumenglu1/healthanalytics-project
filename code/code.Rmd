@@ -177,56 +177,85 @@ chi_test
 library(modelsummary)
 library(kableExtra)
 library(tibble)
+library(dplyr)
+library(broom)
+library(margins)
 
-# Run logistic regression using Smoking_Intensity (with detailed categories)
+# Run logistic regression
 logit_model <- glm(
   Asthma_Attack ~ Smoking_Intensity, 
   data = data_cleaned, 
   family = binomial()
 )
 
-# Create a mapping of raw coefficient names to natural language labels.
-coef_map <- c(
-  `(Intercept)` = "Intercept",
-  "Smoking_IntensityCurrent Smoker (Light)" = "Current Smoker (Light)",
-  "Smoking_IntensityCurrent Smoker (Moderate)" = "Current Smoker (Moderate)",
-  "Smoking_IntensityCurrent Smoker (Heavy)" = "Current Smoker (Heavy)",
-  "Smoking_IntensityFormer Smoker" = "Former Smoker",
-  "Smoking_IntensityNever Smoked" = "Never Smoked",
-  "Smoking_IntensityUnknown" = "Unknown"
-)
+# 1. Calculate the mean Asthma_Attack rate in the "Never Smoked" group
+control_group_mean <- data_cleaned %>%
+  filter(Smoking_Intensity == "Never Smoked") %>%
+  summarise(Mean_Control = mean(Asthma_Attack, na.rm = TRUE)) %>%
+  pull(Mean_Control)
 
-# Create a mapping of goodness-of-fit statistics with natural language labels.
-gof_map <- tribble(
-  ~raw,         ~clean,                             ~fmt,    ~dec, ~drop,
-  "AIC",        "Akaike Information Criterion",     "%.2f", 2,    FALSE,
-  "BIC",        "Bayesian Information Criterion",   "%.2f", 2,    FALSE,
-  "Log.Lik.",   "Log-Likelihood",                   "%.2f", 2,    FALSE,
-  "N",          "Observations",                     "%.0f", 0,    FALSE
-)
+# 2. Extract logistic regression results
+model_results <- tidy(logit_model, conf.int = TRUE, exponentiate = TRUE)
 
-# Generate a single standardized table with robust standard errors,
-# exponentiated coefficients (odds ratios), and natural language labels.
-model_table <- modelsummary(
-  logit_model,
-  vcov = "robust",
-  exponentiate = TRUE,
-  coef_map = coef_map,
-  gof_map = gof_map,
-  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
-  output = "kableExtra",
-  title = "Logistic Regression Results with Robust Standard Errors"
-)
+# 3. Compute marginal effects
+marginal_effects <- margins(logit_model)
+marginal_summary <- summary(marginal_effects) %>%
+  as_tibble()
 
-# Apply kableExtra styling to match your other tables:
-model_table <- kable_styling(
-  model_table, 
-  bootstrap_options = c("striped", "hover", "condensed"),
-  full_width = FALSE, 
-  position = "center"
-)
+# Check column names
+print(colnames(marginal_summary))  # Identify the correct column name for variable names
 
-print(model_table)
+# Adjust column selection based on actual output
+marginal_summary <- marginal_summary %>%
+  select(factor, AME = AME)  # Replace 'factor' if needed with actual column name
+
+# 4. Format p-values properly with four decimal places and significance stars
+model_results <- model_results %>%
+  mutate(
+    stars = case_when(
+      p.value < 0.01 ~ "***",
+      p.value < 0.05 ~ "**",
+      p.value < 0.1  ~ "*",
+      TRUE ~ ""
+    ),
+    `Formatted P-Value` = paste0(sprintf("%.4f", p.value), stars)  # Ensures 4 decimal places
+  )
+
+# 5. Merge regression results with marginal effects
+merged_results <- model_results %>%
+  left_join(marginal_summary, by = c("term" = "factor")) %>%  # Ensure correct join
+  mutate(
+    Variable = case_when(
+      term == "(Intercept)" ~ "Intercept",
+      term == "Smoking_IntensityCurrent Smoker (Light)" ~ "Current Smoker (Light)",
+      term == "Smoking_IntensityCurrent Smoker (Moderate)" ~ "Current Smoker (Moderate)",
+      term == "Smoking_IntensityCurrent Smoker (Heavy)" ~ "Current Smoker (Heavy)",
+      term == "Smoking_IntensityFormer Smoker" ~ "Former Smoker",
+      term == "Smoking_IntensityNever Smoked" ~ "Never Smoked",
+      term == "Smoking_IntensityUnknown" ~ "Unknown",
+      TRUE ~ term
+    ),
+    `Mean Value in Control Group` = ifelse(term == "(Intercept)", control_group_mean, NA),
+    `Change with Smoking Intensity (95% CI)` = paste0(
+      round(estimate, 3), 
+      " (", round(conf.low, 3), " to ", round(conf.high, 3), ")"
+    ),
+    `Average Marginal Effect (AME)` = ifelse(is.na(AME), "", sprintf("%.4f", AME))  # Format AME values
+  ) %>%
+  select(Variable, `Mean Value in Control Group`, `Change with Smoking Intensity (95% CI)`, `Average Marginal Effect (AME)`, `Formatted P-Value`)
+
+# 6. Convert to kableExtra table
+styled_table <- kable(merged_results, format = "html", escape = FALSE) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE, position = "center") %>%
+  add_header_above(c(" " = 1, "Logistic Regression Results" = 4)) %>%
+  row_spec(0, bold = TRUE, background = "#F8F8F8") %>%
+  column_spec(1, width = "5cm") %>%
+  column_spec(2, width = "4cm") %>%
+  column_spec(3, width = "5cm") %>%
+  column_spec(4, width = "4cm") %>%
+  column_spec(5, width = "3cm")
+
+print(styled_table)
 ```
 
 ## Residual Plot for Logistic Regression
