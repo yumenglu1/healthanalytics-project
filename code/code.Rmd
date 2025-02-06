@@ -12,8 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Load Packages
 ```{r}
 # Load necessary packages
-target_packages <- c("dplyr", "ggplot2", "broom", "tidyr", "srvyr", "survey", "ipumsr", "here", "car", "kableExtra", "modelsummary", "margins")
+target_packages <- c("dplyr", "ggplot2", "broom", "tidyr", "srvyr", 
+"survey", "ipumsr", "here", "car", "kableExtra", "modelsummary", "margins")
 
+# Check if packages are installed; if not, install them
 package.check <- lapply(
   target_packages,
   FUN = function(x) {
@@ -67,16 +69,68 @@ data_cleaned <- data %>%
 
 ## Summary Tables
 ```{r}
-# Frequency Table
-summary_table <- data_cleaned %>%
-  group_by(Smoking_Status, Asthma_Attack) %>%
-  summarise(Count = n(), .groups = 'drop') %>%
-  pivot_wider(names_from = Asthma_Attack, values_from = Count, names_prefix = "Asthma_") %>%
-  kable(format = "html", caption = "Asthma Attack Cases by Smoking Status") %>%
-  kable_styling()
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
 
-print(summary_table)
+# 1. Ensure Smoking_Intensity is a factor with the desired ordering
+data_cleaned <- data_cleaned %>%
+  mutate(Smoking_Intensity = factor(Smoking_Intensity, 
+                                    levels = c("Never Smoked", "Former Smoker", "Unknown",
+                                               "Current Smoker (Light)", "Current Smoker (Moderate)", "Current Smoker (Heavy)")))
+
+# 2. Create a combined summary table grouped by Smoking_Intensity,
+#    excluding metrics that are mostly zeros/NA's (e.g. we remove CV_CIGSDAY)
+combined_table <- data_cleaned %>%
+  group_by(Smoking_Intensity) %>%
+  summarise(
+    N = n(),
+    Asthma_No = sum(Asthma_Attack == 0, na.rm = TRUE),
+    Asthma_Yes = sum(Asthma_Attack == 1, na.rm = TRUE),
+    Mean_CIGSDAY = mean(CIGSDAY2, na.rm = TRUE),
+    SD_CIGSDAY = sd(CIGSDAY2, na.rm = TRUE),
+    Median_CIGSDAY = median(CIGSDAY2, na.rm = TRUE),
+    IQR_CIGSDAY = IQR(CIGSDAY2, na.rm = TRUE),
+    Min_CIGSDAY = min(CIGSDAY2, na.rm = TRUE),
+    Max_CIGSDAY = max(CIGSDAY2, na.rm = TRUE),
+    Percent_with_Asthma = mean(Asthma_Attack, na.rm = TRUE) * 100,
+    .groups = "drop"
+  )
+
+# 3. Flip the table so that summary metrics become rows and Smoking_Intensity groups become columns.
+#    Then rename the raw metric names to reader-friendly labels.
+flipped_table <- combined_table %>%
+  pivot_longer(-Smoking_Intensity, names_to = "Metric", values_to = "Value") %>%
+  mutate(Metric = dplyr::recode(Metric,
+                                "N" = "Sample Size",
+                                "Asthma_No" = "Count (No Asthma Attack)",
+                                "Asthma_Yes" = "Count (Asthma Attack)",
+                                "Mean_CIGSDAY" = "Mean Cigarettes/Day",
+                                "SD_CIGSDAY" = "SD Cigarettes/Day",
+                                "Median_CIGSDAY" = "Median Cigarettes/Day",
+                                "IQR_CIGSDAY" = "Interquartile Range Cigarettes/Day",
+                                "Min_CIGSDAY" = "Minimum Cigarettes/Day",
+                                "Max_CIGSDAY" = "Maximum Cigarettes/Day",
+                                "Percent_with_Asthma" = "Percentage with Asthma Attack"
+  )) %>%
+  pivot_wider(names_from = Smoking_Intensity, values_from = Value) %>%
+  # Round numeric columns to 2 decimal places for a neat output
+  mutate(across(where(is.numeric), ~ round(., 2)))
+
+# 4. Add a design touch with kableExtra.
+#    Here we also sort the columns based on the factor levels we set earlier.
+final_table <- flipped_table %>%
+  kable(format = "html", caption = "Combined Summary Table by Smoking Intensity", 
+        col.names = colnames(.)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE, position = "center")
+
+# Print the final table
+print(final_table)
+   
 ```
+
 
 ## Visualization
 ```{r}
