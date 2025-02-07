@@ -232,36 +232,33 @@ final_table <- flipped_table %>%
 print(final_table)
 ```
 
-
 ## Visualization
-```{r}
-# Bar Chart: Asthma Attack Count by Smoking Status
+```{r visualization, message=FALSE, warning=FALSE}
+library(ggplot2)
+
+# Bar Chart: Count of Asthma Attacks by Smoking Status
 ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
   geom_bar(position = "dodge") +
-  labs(title = "Asthma Attack Frequency by Smoking Status", x = "Smoking Status", y = "Count", fill = "Asthma Attack") +
+  labs(
+    title = "Asthma Attack Count by Smoking Status",
+    x = "Smoking Status", 
+    y = "Count", 
+    fill = "Asthma Attack"
+  ) +
   theme_minimal() +
   scale_fill_manual(values = c("#1f78b4", "#33a02c"))
 
-# Stacked Bar Chart: Proportion of Asthma Attacks per Smoking Category
+# Stacked Bar Chart: Proportion of Asthma Attacks by Smoking Status
 ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
   geom_bar(position = "fill") +
-  labs(title = "Proportion of Asthma Attacks by Smoking Status", x = "Smoking Status", y = "Proportion", fill = "Asthma Attack") +
+  labs(
+    title = "Proportion of Asthma Attacks by Smoking Status",
+    x = "Smoking Status", 
+    y = "Proportion", 
+    fill = "Asthma Attack"
+  ) +
   theme_minimal() +
   scale_fill_manual(values = c("#1f78b4", "#33a02c"))
-
-# Facet Plot for Smoking Groups
-ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
-  geom_bar(position = "fill") +
-  facet_wrap(~ Smoking_Status) +
-  labs(title = "Asthma Attack Proportions by Smoking Status", x = "Smoking Status", y = "Proportion") +
-  theme_minimal()
-```
-
-## Statistical Analysis
-```{r}
-# Chi-Square Test
-chi_test <- chisq.test(table(data_cleaned$Smoking_Status, data_cleaned$Asthma_Attack))
-chi_test
 ```
 
 ## Logistic Regression Model
@@ -288,6 +285,10 @@ modelsummary(
   stars = c('*' = .1, '**' = .05, '***' = .01),
   output = "html"
 )
+
+## Bivariate Test: Chi-Square
+chi_test <- chisq.test(table(data_cleaned$Smoking_Status, data_cleaned$Asthma_Attack))
+chi_test
 ```
 ## Multicollinearity Test
 ```{r}
@@ -464,6 +465,3 @@ marginal_effects <- margins(logit_model)
 # Summarize Average Marginal Effects
 summary(marginal_effects)
 ```
-
-## Interpretation
-The logistic regression results above provide insights into the relationship between smoking status and the likelihood of having an asthma attack in the past 12 months. The confidence intervals and significance levels indicate the strength of this relationship. Further investigation can include additional covariates to control for confounding factors.
