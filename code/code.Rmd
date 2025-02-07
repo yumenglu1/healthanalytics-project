@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ## Initialization & Setup
+
 ```{r initialization, include=FALSE}
 # Set global chunk options: show code but hide messages and warnings
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
@@ -28,6 +29,7 @@ invisible(lapply(required_packages, load_or_install))
 ```
 
 ## Load & Clean Data
+
 ```{r load_clean_data}
 # Load dataset
 ddi <- read_ipums_ddi("nhis_00012.xml")
@@ -107,6 +109,7 @@ data_cleaned <- data %>%
 ```
 
 ## Descriptive Table: Demographics
+
 ```{r descriptive_table_demographics, message=FALSE, warning=FALSE}
 library(dplyr)
 library(tidyr)
@@ -163,6 +166,7 @@ descriptive_demographics_long %>%
 ```
 
 ## Summary Table: Cigarette Metrics
+
 ```{r pivoted_metrics_table, message=FALSE, warning=FALSE}
 library(dplyr)
 library(tidyr)
@@ -233,6 +237,7 @@ print(final_table)
 ```
 
 ## Visualization
+
 ```{r visualization, message=FALSE, warning=FALSE}
 library(ggplot2)
 
@@ -262,6 +267,7 @@ ggplot(data_cleaned, aes(x = Smoking_Status, fill = as.factor(Asthma_Attack))) +
 ```
 
 ## Logistic Regression Model
+
 ```{r}
 # Run logistic regression
 logit_model <- glm(
@@ -290,7 +296,94 @@ modelsummary(
 chi_test <- chisq.test(table(data_cleaned$Smoking_Status, data_cleaned$Asthma_Attack))
 chi_test
 ```
+
+```{r}
+# Load required packages
+library(dplyr)
+library(ggplot2)
+library(modelsummary)
+library(margins)
+library(knitr)
+library(kableExtra)
+
+# --- Estimate Models ---
+# LPM
+m_lpm <- lm(Asthma_Attack ~ Smoking_Intensity + gender + age + income + education + region,
+            data = data_cleaned)
+
+# Compute predicted probabilities for later use in the histogram
+data_cleaned$pred_lpm <- predict(m_lpm, data_cleaned)
+
+# Logit model
+m_logit <- glm(Asthma_Attack ~ Smoking_Intensity + gender + age + income + education + region,
+               data = data_cleaned, family = binomial(link = "logit"))
+
+# Probit model
+m_probit <- glm(Asthma_Attack ~ Smoking_Intensity + gender + age + income + education + region,
+                data = data_cleaned, family = binomial(link = "probit"))
+
+# --- Regression Results: Estimates Only ---
+# Convert regression output to a clean table
+reg_table <- msummary(
+  list("LPM" = m_lpm, "Logit" = m_logit, "Probit" = m_probit),
+  vcov = rep("robust", 3),
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  output = "data.frame"
+)
+
+# Clean variable names to natural language
+reg_table$term <- gsub("Smoking_Intensity", "", reg_table$term)
+reg_table$term <- gsub("genderMale", "Male", reg_table$term)
+reg_table$term <- gsub("genderFemale", "Female", reg_table$term)
+reg_table$term <- gsub("educationBachelor\\+", "Bachelor's Degree or Higher", reg_table$term)
+reg_table$term <- gsub("incomeYes", "Has Income", reg_table$term)
+reg_table$term <- gsub("region", "Region: ", reg_table$term)
+
+# Extract only coefficient estimates
+estimates_table <- reg_table %>%
+  filter(statistic == "estimate") %>%
+  select(term, LPM, Logit, Probit)
+
+# Display regression estimates table
+cat("### Regression Coefficients\n")
+kable(estimates_table, format = "html", caption = "Regression Coefficients (Robust SE)") %>%
+  kable_styling(full_width = FALSE)
+
+# --- Regression Results: Standard Errors ---
+std_error_table <- reg_table %>%
+  filter(statistic == "std.error") %>%
+  select(term, LPM, Logit, Probit)
+
+cat("\n### Standard Errors\n")
+kable(std_error_table, format = "html", caption = "Standard Errors for Regression Coefficients") %>%
+  kable_styling(full_width = FALSE)
+
+# --- Predicted Probabilities Plot ---
+cat("\n### Histogram of Predicted Probabilities (LPM)\n")
+p <- ggplot(data_cleaned, aes(x = pred_lpm)) +
+  geom_histogram(binwidth = 0.05, fill = "blue", color = "black", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Predicted Probabilities (LPM)",
+       x = "Predicted Probability", y = "Count")
+print(p)
+ggsave("predicted_probabilities.png", p, width = 8, height = 6, dpi = 300)
+
+# --- Outside Bounds ---
+outside_bounds <- mean(data_cleaned$pred_lpm < 0 | data_cleaned$pred_lpm > 1)
+cat("\n**Fraction of predictions outside [0,1]:** ", round(outside_bounds, 3), "\n")
+
+# --- Marginal Effects Table ---
+# Calculate marginal effects for the logit model and display as a table.
+marginal_effects <- margins(m_logit)
+marginal_table <- as.data.frame(summary(marginal_effects))
+
+cat("\n### Marginal Effects (Logit Model)\n")
+kable(marginal_table, format = "html", caption = "Marginal Effects for Logit Model") %>%
+  kable_styling(full_width = FALSE)
+```
+
 ## Multicollinearity Test
+
 ```{r}
 # Logistic 
 model_interaction <- glm(Asthma_Attack ~ Smoking_Intensity * region + 
@@ -312,7 +405,9 @@ summary(model_no_interaction)
 vif(model_no_interaction)
 # We find that multicollinearity has been significantly reduced after change to the noninteraction model, which means the interaction term introduced multicollinearity, inflating standard errors 
 ```
+
 ## Robustness Checks
+
 ```{r}
 # Probit regress
 model_probit <- glm(Asthma_Attack ~ Smoking_Intensity + 
@@ -338,7 +433,9 @@ model_clustered <- glm(Asthma_Attack ~ Smoking_Intensity * region +
 
 coeftest(model_clustered, vcov = vcovCL, cluster = ~region)
 ```
+
 ## Heterogeneity Test
+
 ```{r}
 # Define a function to run logistic regression and return ORs
 run_logit_by_region <- function(region_name) {
@@ -384,7 +481,9 @@ results_table %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
 
 ```
+
 ## Heterogeneity Test for the sex
+
 ```{r}
 # Define a function to run logistic regression and return ORs
 run_logit_by_gender <- function(gender_name) {
@@ -429,7 +528,9 @@ results_table %>%
   kable("html", caption = "Odds Ratios (OR) for Asthma by Gender") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
 ```
+
 ## Residual Plot for Logistic Regression
+
 ```{r}
 # Extract residuals and fitted values
 residuals_data <- data.frame(
@@ -446,6 +547,7 @@ ggplot(residuals_data, aes(x = Fitted, y = Residuals)) +
 ```
 
 ## Predicted Probabilities Distribution
+
 ```{r}
 # Get predicted probabilities
 data_cleaned$pred_prob <- predict(logit_model, type = "response")
@@ -458,6 +560,7 @@ ggplot(data_cleaned, aes(x = pred_prob)) +
 ```
 
 ## Marginal Effects for Logistic Regression
+
 ```{r}
 # Compute marginal effects for logistic regression
 marginal_effects <- margins(logit_model)
