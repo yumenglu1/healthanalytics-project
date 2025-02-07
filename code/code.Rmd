@@ -1,50 +1,51 @@
 ---
 title: "Smoking and Asthma Analysis"
-author: "Your Name"
+author: "Group R: Hanif, Chuanbo, Meihe, Mingzhi, Yumeng"
 date: "`r Sys.Date()`"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+## Initialization & Setup
+```{r initialization, include=FALSE}
+# Set global chunk options: show code but hide messages and warnings
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
-## Load Packages
-```{r}
-# Load necessary packages
-target_packages <- c("dplyr", "ggplot2", "broom", "tidyr", "srvyr", 
-"survey", "ipumsr", "here", "car", "kableExtra", "modelsummary", "margins")
+# List of required packages
+required_packages <- c("dplyr", "ggplot2", "broom", "tidyr", "srvyr", 
+                       "survey", "ipumsr", "here", "car", "kableExtra", 
+                       "modelsummary", "margins")
 
-# Check if packages are installed; if not, install them
-package.check <- lapply(
-  target_packages,
-  FUN = function(x) {
-    if (!require(x, character.only = TRUE)) {
-      install.packages(x, dependencies = TRUE)
-      library(x, character.only = TRUE)
-    }
+# Function to load or install packages if they're missing
+load_or_install <- function(pkg) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+    library(pkg, character.only = TRUE)
   }
-)
+}
+
+# Load all packages silently
+invisible(lapply(required_packages, load_or_install))
 ```
 
 ## Load & Clean Data
-```{r}
+```{r load_clean_data}
 # Load dataset
 ddi <- read_ipums_ddi("nhis_00012.xml")
 data <- read_ipums_micro(ddi)
 
-# Select relevant variables
 data_cleaned <- data %>%
-   select(SMOKESTATUS2, ASTHMAEV, CIGSDAY2, 
-         AGE, SEX, EDUC, GOTWAGE, REGION) %>%
-  filter(!is.na(SMOKESTATUS2) & !is.na(ASTHMAEV)) %>%
+  # Select only the relevant variables
+  select(SMOKESTATUS2, ASTHMAEV, CIGSDAY2, AGE, SEX, EDUC, GOTWAGE, REGION) %>%
+  # Remove rows missing key smoking or asthma information
+  filter(!is.na(SMOKESTATUS2), !is.na(ASTHMAEV)) %>%
   mutate(
+    # Clean cigarettes per day: set NIU codes to NA, keep 95 as is, convert others to numeric
     CIGSDAY2_cleaned = case_when(
-      CIGSDAY2 %in% c(97, 98, 99) ~ NA_real_,   # Keep these as NIU
-      CIGSDAY2 == 95 ~ 95,                      # Keep 95
-      TRUE ~ as.numeric(CIGSDAY2)               # Keep other number
+      CIGSDAY2 %in% c(97, 98, 99) ~ NA_real_,
+      CIGSDAY2 == 95 ~ 95,
+      TRUE ~ as.numeric(CIGSDAY2)
     ),
-    # Define smoking status
+    # Define smoking status based on SMOKESTATUS2 codes
     Smoking_Status = case_when(
       SMOKESTATUS2 %in% c(10, 11, 12, 13) ~ "Current Smoker",
       SMOKESTATUS2 == 20 ~ "Former Smoker",
@@ -52,125 +53,183 @@ data_cleaned <- data %>%
       SMOKESTATUS2 %in% c(40, 90) ~ "Unknown",
       TRUE ~ "Unknown"
     ),
-    # Define the number of cigarette for the current smoker
+    # For current smokers, categorize intensity based on cigarettes per day
     Smoking_Intensity = case_when(
       Smoking_Status == "Current Smoker" & CIGSDAY2 <= 5 ~ "Current Smoker (Light)",
       Smoking_Status == "Current Smoker" & CIGSDAY2 <= 10 ~ "Current Smoker (Moderate)",
       Smoking_Status == "Current Smoker" & CIGSDAY2 > 10 ~ "Current Smoker (Heavy)",
-      TRUE ~ Smoking_Status  
+      TRUE ~ Smoking_Status
     ),
+    # Recode asthma variable: 1 indicates an asthma attack
     Asthma_Attack = if_else(ASTHMAEV == 2, 1, 0),
-    # Age (AGE)
+    # Recode age: set certain codes to NA or top-code to 85
     age = case_when(
-      AGE %in% c(997, 998, 999) ~ NA_real_,  # Set unknown ages to missing
-      AGE %in% c(085, 090, 099) ~ 85,        # Recode top-coded ages (85+)
-      TRUE ~ as.numeric(AGE)                 # Keep other ages as numeric
+      AGE %in% c(997, 998, 999) ~ NA_real_,
+      AGE %in% c(085, 090, 099) ~ 85,
+      TRUE ~ as.numeric(AGE)
     ),
-    
-    # Gender (SEX)
+    # Convert SEX to a factor with appropriate labels
     gender = factor(case_when(
       SEX == 1 ~ "Male",
       SEX == 2 ~ "Female",
-      TRUE ~ NA_character_  # Set unknown genders to missing
+      TRUE ~ NA_character_
     ), levels = c("Male", "Female")),
-    
-    # Education (EDU)
+    # Recode education: group into "Bachelor+" or "No Bachelor"
     education = factor(case_when(
-      EDUC %in% c(400, 501, 503, 505) ~ "Bachelor+",  # Bachelor's degree or higher
-      EDUC %in% c(100:116, 200:303) ~ "No Bachelor",  # No bachelor's degree
-      TRUE ~ NA_character_  # Set unknown education to missing
+      EDUC %in% c(400, 501, 503, 505) ~ "Bachelor+",
+      EDUC %in% c(100:116, 200:303) ~ "No Bachelor",
+      TRUE ~ NA_character_
     ), levels = c("No Bachelor", "Bachelor+")),
-    
-    # Income (GOTWAGE)
+    # Recode income based on wage status
     income = factor(case_when(
-      GOTWAGE == 2 ~ "Yes",  # Has wage income
-      GOTWAGE == 1 ~ "No",   # No wage income
-      TRUE ~ NA_character_   # Set unknown income to missing
+      GOTWAGE == 2 ~ "Yes",
+      GOTWAGE == 1 ~ "No",
+      TRUE ~ NA_character_
     ), levels = c("No", "Yes")),
-    
-    # Region (REGION)
+    # Map region codes to names
     region = factor(case_when(
       REGION == 1 ~ "Northeast",
       REGION == 2 ~ "Midwest",
       REGION == 3 ~ "South",
       REGION == 4 ~ "West",
-      TRUE ~ NA_character_  # Set unknown regions to missing
+      TRUE ~ NA_character_
     ), levels = c("Northeast", "Midwest", "South", "West"))
   ) %>%
-    # Remove rows with missing control variables
-  filter(!is.na(age) & !is.na(gender) & !is.na(education) & 
-         !is.na(income) & !is.na(region)) %>%
-   # Set reference groups
+  # Remove observations missing any control variable
+  filter(!is.na(age), !is.na(gender), !is.na(education), !is.na(income), !is.na(region)) %>%
+  # Set reference categories for regression analyses
   mutate(
     Smoking_Intensity = relevel(factor(Smoking_Intensity), ref = "Never Smoked"),
-    education = relevel(education, ref = "No Bachelor"),  # Reference: No bachelor's degree
-    income = relevel(income, ref = "No"),                # Reference: No wage income
-    region = relevel(region, ref = "Northeast")          # Reference: Northeast region
+    education = relevel(education, ref = "No Bachelor"),
+    income = relevel(income, ref = "No"),
+    region = relevel(region, ref = "Northeast")
   )
 ```
 
-## Summary Tables
-```{r}
+## Descriptive Table: Demographics
+```{r descriptive_table_demographics, message=FALSE, warning=FALSE}
 library(dplyr)
 library(tidyr)
-library(knitr)
 library(kableExtra)
 
-# 1. Ensure Smoking_Intensity is a factor with the desired ordering
-data_cleaned <- data_cleaned %>%
-  mutate(Smoking_Intensity = factor(Smoking_Intensity, 
-                                    levels = c("Never Smoked", "Former Smoker", "Unknown",
-                                               "Current Smoker (Light)", "Current Smoker (Moderate)", "Current Smoker (Heavy)")))
+# Summarize key demographic variables
+descriptive_demographics <- data_cleaned %>%
+  group_by(Smoking_Intensity) %>%
+  summarise(
+    Observations      = n(),
+    Mean_Age          = mean(age, na.rm = TRUE),
+    SD_Age            = sd(age, na.rm = TRUE),
+    Prop_Male         = mean(gender == "Male", na.rm = TRUE),
+    Prop_Female       = mean(gender == "Female", na.rm = TRUE),
+    Prop_BachelorPlus = mean(education == "Bachelor+", na.rm = TRUE),
+    Prop_IncomeYes    = mean(income == "Yes", na.rm = TRUE),
+    Prop_Asthma       = mean(Asthma_Attack == 1, na.rm = TRUE)
+  ) %>%
+  ungroup()
 
-# 2. Create a combined summary table grouped by Smoking_Intensity,
-#    excluding metrics that are mostly zeros/NA's (e.g. we remove CV_CIGSDAY)
+# Pivot so that each metric is a row, and each Smoking_Intensity group is a column
+descriptive_demographics_long <- descriptive_demographics %>%
+  pivot_longer(-Smoking_Intensity, names_to = "Metric", values_to = "Value") %>%
+  pivot_wider(names_from = Smoking_Intensity, values_from = Value) %>%
+  # Round numeric values for neat display
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+# Provide user-friendly labels for each metric
+descriptive_demographics_long <- descriptive_demographics_long %>%
+  mutate(Metric = dplyr::recode(
+    Metric,
+    "Observations"      = "Number of Observations",
+    "Mean_Age"          = "Mean Age",
+    "SD_Age"            = "SD of Age",
+    "Prop_Male"         = "% Male",
+    "Prop_Female"       = "% Female",
+    "Prop_BachelorPlus" = "% with Bachelor+",
+    "Prop_IncomeYes"    = "% with Income = Yes",
+    "Prop_Asthma"       = "% with Asthma Attack"
+  ))
+
+# Render table with consistent kableExtra styling
+descriptive_demographics_long %>%
+  kable(
+    format   = "html",
+    caption  = "Descriptive Characteristics by Smoking Intensity (Demographics)",
+    col.names = colnames(.)
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position   = "center"
+  )
+```
+
+## Summary Table: Cigarette Metrics
+```{r pivoted_metrics_table, message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+
+# (Optional) Re-factor Smoking_Intensity to ensure correct column order
+data_cleaned <- data_cleaned %>%
+  mutate(Smoking_Intensity = factor(
+    Smoking_Intensity,
+    levels = c("Never Smoked", "Former Smoker", "Unknown",
+               "Current Smoker (Light)", "Current Smoker (Moderate)", "Current Smoker (Heavy)")
+  ))
+
+# Summarize cigarette-related metrics
 combined_table <- data_cleaned %>%
   group_by(Smoking_Intensity) %>%
   summarise(
-    N = n(),
-    Asthma_No = sum(Asthma_Attack == 0, na.rm = TRUE),
-    Asthma_Yes = sum(Asthma_Attack == 1, na.rm = TRUE),
-    Mean_CIGSDAY = mean(CIGSDAY2_cleaned, na.rm = TRUE),
-    SD_CIGSDAY = sd(CIGSDAY2_cleaned, na.rm = TRUE),
-    Median_CIGSDAY = median(CIGSDAY2_cleaned, na.rm = TRUE),
-    IQR_CIGSDAY = IQR(CIGSDAY2_cleaned, na.rm = TRUE),
-    Min_CIGSDAY = min(CIGSDAY2_cleaned, na.rm = TRUE),
-    Max_CIGSDAY = max(CIGSDAY2_cleaned, na.rm = TRUE),
-    Percent_with_Asthma = mean(Asthma_Attack, na.rm = TRUE) * 100,
+    N                 = n(),
+    Asthma_No         = sum(Asthma_Attack == 0, na.rm = TRUE),
+    Asthma_Yes        = sum(Asthma_Attack == 1, na.rm = TRUE),
+    Mean_CIGSDAY      = mean(CIGSDAY2_cleaned, na.rm = TRUE),
+    SD_CIGSDAY        = sd(CIGSDAY2_cleaned, na.rm = TRUE),
+    Median_CIGSDAY    = median(CIGSDAY2_cleaned, na.rm = TRUE),
+    IQR_CIGSDAY       = IQR(CIGSDAY2_cleaned, na.rm = TRUE),
+    Min_CIGSDAY       = min(CIGSDAY2_cleaned, na.rm = TRUE),
+    Max_CIGSDAY       = max(CIGSDAY2_cleaned, na.rm = TRUE),
+    Percent_with_Asthma = 100 * mean(Asthma_Attack == 1, na.rm = TRUE),
     .groups = "drop"
   )
 
-# 3. Flip the table so that summary metrics become rows and Smoking_Intensity groups become columns.
-#    Then rename the raw metric names to reader-friendly labels.
+# Pivot the table
 flipped_table <- combined_table %>%
-  pivot_longer(-Smoking_Intensity, names_to = "Metric", values_to = "Value") %>%
-  mutate(Metric = dplyr::recode(Metric,
-                                "N" = "Sample Size",
-                                "Asthma_No" = "Count (No Asthma Attack)",
-                                "Asthma_Yes" = "Count (Asthma Attack)",
-                                "Mean_CIGSDAY" = "Mean Cigarettes/Day",
-                                "SD_CIGSDAY" = "SD Cigarettes/Day",
-                                "Median_CIGSDAY" = "Median Cigarettes/Day",
-                                "IQR_CIGSDAY" = "Interquartile Range Cigarettes/Day",
-                                "Min_CIGSDAY" = "Minimum Cigarettes/Day",
-                                "Max_CIGSDAY" = "Maximum Cigarettes/Day",
-                                "Percent_with_Asthma" = "Percentage with Asthma Attack"
+  pivot_longer(
+    cols = -Smoking_Intensity,
+    names_to = "Metric",
+    values_to = "Value"
+  ) %>%
+  mutate(Metric = dplyr::recode(
+    Metric,
+    "N"                   = "Sample Size",
+    "Asthma_No"           = "Count (No Asthma Attack)",
+    "Asthma_Yes"          = "Count (Asthma Attack)",
+    "Mean_CIGSDAY"        = "Mean Cigarettes/Day",
+    "SD_CIGSDAY"          = "SD Cigarettes/Day",
+    "Median_CIGSDAY"      = "Median Cigarettes/Day",
+    "IQR_CIGSDAY"         = "Interquartile Range Cigarettes/Day",
+    "Min_CIGSDAY"         = "Minimum Cigarettes/Day",
+    "Max_CIGSDAY"         = "Maximum Cigarettes/Day",
+    "Percent_with_Asthma" = "Percentage with Asthma Attack"
   )) %>%
   pivot_wider(names_from = Smoking_Intensity, values_from = Value) %>%
-  # Round numeric columns to 2 decimal places for a neat output
-  mutate(across(where(is.numeric), ~ round(., 2)))
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
 
-# 4. Add a design touch with kableExtra.
-#    Here we also sort the columns based on the factor levels we set earlier.
+# Same styling as the first table
 final_table <- flipped_table %>%
-  kable(format = "html", caption = "Combined Summary Table by Smoking Intensity", 
-        col.names = colnames(.)) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE, position = "center")
+  kable(
+    format   = "html", 
+    caption  = "Cigarette Metrics by Smoking Intensity",
+    col.names = colnames(.)
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position   = "center"
+  )
 
-# Print the final table
 print(final_table)
-   
 ```
 
 
