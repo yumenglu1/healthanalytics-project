@@ -108,6 +108,96 @@ data_cleaned <- data %>%
   )
 ```
 
+
+
+##Table experiment
+```{r summary_table_with_dummies, message=FALSE, warning=FALSE}
+library(dplyr)
+library(kableExtra)
+
+# 1. Add dummy columns for each smoking category
+data_cleaned <- data_cleaned %>%
+  mutate(
+    # Make ASTHMAEV a 0/1 variable if needed:
+   ASTHMAEV = if_else(ASTHMAEV == 2, 1, 0),
+    
+    # Create separate 0/1 columns for each smoking category
+    `Never Smoked`    = if_else(Smoking_Intensity == "Never Smoked", 1, 0),
+    `Former Smoker`   = if_else(Smoking_Intensity == "Former Smoker", 1, 0),
+    `Light Smoker`    = if_else(Smoking_Intensity == "Current Smoker (Light)", 1, 0),
+    `Moderate Smoker` = if_else(Smoking_Intensity == "Current Smoker (Moderate)", 1, 0),
+    `Heavy Smoker`    = if_else(Smoking_Intensity == "Current Smoker (Heavy)", 1, 0),
+    `Unknown`         = if_else(Smoking_Intensity == "Unknown", 1, 0)
+  )
+
+# 2. Define all variables + optional definitions
+variable_info <- tibble::tribble(
+  ~Variable,             ~Definition,
+  "ASTHMAEV",            "1 if ever diagnosed w/ asthma, else 0",
+  "Never Smoked",        "1 if never smoked, else 0",
+  "Former Smoker",       "1 if formerly smoked, else 0",
+  "Light Smoker",        "1 if currently a light smoker, else 0",
+  "Moderate Smoker",     "1 if currently a moderate smoker, else 0",
+  "Heavy Smoker",        "1 if currently a heavy smoker, else 0",
+  "Unknown",             "1 if smoking status is unknown",
+  "CIGSDAY2_cleaned",    "Number of cigarettes smoked per day",
+  "AGE",                 "Age of individual",
+  "SEX",                 "1 is male, 2 is female",
+  "EDUC",                "1 is Bachelor+, 0 is no Bachelor, Education status)",
+  "GOTWAGE",             "1 is employed, 0 is not employed, Employment status",
+  "REGION",              "Region: 1.NE, 2.MW, 3.South, 4.West"
+)
+
+# 3. Define the function to get summary stats for one variable
+get_summary_stats <- function(data, varname) {
+  x <- data[[varname]]  
+  obs <- sum(!is.na(x))
+  
+  if (is.numeric(x)) {
+    the_mean <- round(mean(x, na.rm = TRUE), 2)
+    the_sd   <- round(sd(x,   na.rm = TRUE), 2)
+    the_min  <- round(min(x,  na.rm = TRUE), 2)
+    the_max  <- round(max(x,  na.rm = TRUE), 2)
+  } else {
+    the_mean <- NA
+    the_sd   <- NA
+    the_min  <- NA
+    the_max  <- NA
+  }
+  
+  tibble(
+    Obs  = obs,
+    Mean = the_mean,
+    SD   = the_sd,
+    Min  = the_min,
+    Max  = the_max
+  )
+}
+
+# 4. Build the summary table for each variable in variable_info
+final_summary <- variable_info %>%
+  rowwise() %>%
+  mutate(stats = list(get_summary_stats(data_cleaned, Variable))) %>%
+  tidyr::unnest(cols = c(stats)) %>%
+  ungroup()
+
+# 5. Print with kable
+kable_table <- final_summary %>%
+  kable(
+    format    = "html",
+    caption   = "Basic Summary Statistics (With Dummy Columns)",
+    col.names = c("Variable", "Definition", "Obs", "Mean", "SD", "Min", "Max")
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width        = FALSE,
+    position          = "center"
+  )
+
+print(kable_table)
+```
+
+
 ## Descriptive Table: Demographics
 
 ```{r descriptive_table_demographics, message=FALSE, warning=FALSE}
@@ -130,38 +220,42 @@ descriptive_demographics <- data_cleaned %>%
   ) %>%
   ungroup()
 
-# Pivot so that each metric is a row, and each Smoking_Intensity group is a column
-descriptive_demographics_long <- descriptive_demographics %>%
-  pivot_longer(-Smoking_Intensity, names_to = "Metric", values_to = "Value") %>%
-  pivot_wider(names_from = Smoking_Intensity, values_from = Value) %>%
-  # Round numeric values for neat display
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
+# Pivot so that Smoking_Intensity becomes rows, metrics become columns
+descriptive_demographics_flipped <- descriptive_demographics %>%
+  pivot_longer(
+    cols = -Smoking_Intensity, 
+    names_to = "Metric", 
+    values_to = "Value"
+  ) %>%
+  mutate(
+    Value = round(Value, 3),  # Round numeric values
+    Metric = dplyr::case_when(
+      Metric == "Observations"      ~ "Number of Observations",
+      Metric == "Mean_Age"          ~ "Mean Age",
+      Metric == "SD_Age"            ~ "SD of Age",
+      Metric == "Prop_Male"         ~ "% Male",
+      Metric == "Prop_Female"       ~ "% Female",
+      Metric == "Prop_BachelorPlus" ~ "% with Bachelor+",
+      Metric == "Prop_IncomeYes"    ~ "% with Income = Yes",
+      Metric == "Prop_Asthma"       ~ "% with Asthma Attack",
+      TRUE                          ~ Metric
+    )
+  ) %>%
+  pivot_wider(
+    names_from = Metric, 
+    values_from = Value
+  )
 
-# Provide user-friendly labels for each metric
-descriptive_demographics_long <- descriptive_demographics_long %>%
-  mutate(Metric = dplyr::recode(
-    Metric,
-    "Observations"      = "Number of Observations",
-    "Mean_Age"          = "Mean Age",
-    "SD_Age"            = "SD of Age",
-    "Prop_Male"         = "% Male",
-    "Prop_Female"       = "% Female",
-    "Prop_BachelorPlus" = "% with Bachelor+",
-    "Prop_IncomeYes"    = "% with Income = Yes",
-    "Prop_Asthma"       = "% with Asthma Attack"
-  ))
-
-# Render table with consistent kableExtra styling
-descriptive_demographics_long %>%
+# Render the flipped table
+descriptive_demographics_flipped %>%
   kable(
-    format   = "html",
-    caption  = "Descriptive Characteristics by Smoking Intensity (Demographics)",
-    col.names = colnames(.)
+    format  = "html",
+    caption = "Descriptive Characteristics by Smoking Intensity (Demographics)"
   ) %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed"),
-    full_width = FALSE,
-    position   = "center"
+    full_width        = FALSE,
+    position          = "center"
   )
 ```
 
