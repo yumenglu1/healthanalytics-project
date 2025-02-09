@@ -857,3 +857,52 @@ This version of the question was used from 1992 forward.Related Variables]]></tx
 </var>
 </dataDscr>
 </codeBook>
+# Run logistic regression using Smoking_Intensity (with detailed categories)
+logit_model <- glm(
+  Asthma_Attack ~ Smoking_Intensity, 
+  data = data_cleaned, 
+  family = binomial()
+)
+
+# Create a mapping of raw coefficient names to natural language labels.
+# Adjust these names if necessary depending on how your model outputs the variable names.
+coef_map <- c(
+  `(Intercept)` = "Intercept",
+  "Smoking_IntensityCurrent Smoker (Light)" = "Current Smoker (Light)",
+  "Smoking_IntensityCurrent Smoker (Moderate)" = "Current Smoker (Moderate)",
+  "Smoking_IntensityCurrent Smoker (Heavy)" = "Current Smoker (Heavy)",
+  "Smoking_IntensityFormer Smoker" = "Former Smoker",
+  "Smoking_IntensityNever Smoked" = "Never Smoked",
+  "Smoking_IntensityUnknown" = "Unknown"
+)
+
+# Create a mapping of goodness-of-fit statistics with natural language labels.
+gof_map <- tribble(
+  ~raw,         ~clean,                             ~fmt,    ~dec, ~drop,
+  "AIC",        "Akaike Information Criterion",     "%.2f", 2,    FALSE,
+  "BIC",        "Bayesian Information Criterion",   "%.2f", 2,    FALSE,
+  "Log.Lik.",   "Log-Likelihood",                   "%.2f", 2,    FALSE,
+  "N",          "Observations",                     "%.0f", 0,    FALSE
+)
+
+# Generate one standardized table with robust standard errors,
+# exponentiated coefficients (odds ratios), and natural language labels.
+model_table <- modelsummary(
+  logit_model,
+  vcov = "robust",
+  exponentiate = TRUE,
+  coef_map = coef_map,
+  gof_map = gof_map,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  output = "kableExtra"
+)
+
+# Apply kableExtra styling to match your other tables
+model_table <- kable_styling(
+  model_table, 
+  bootstrap_options = c("striped", "hover", "condensed"),
+  full_width = FALSE, 
+  position = "center"
+)
+
+print(model_table)
