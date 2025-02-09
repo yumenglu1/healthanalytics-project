@@ -114,41 +114,39 @@ data_cleaned <- data %>%
 ```{r summary_table_with_dummies, message=FALSE, warning=FALSE}
 library(dplyr)
 library(kableExtra)
+library(tidyr)
 
-# 1. Add dummy columns for each smoking category
+# 1. Convert categorical education to numeric for mean calculations
 data_cleaned <- data_cleaned %>%
   mutate(
-    # Make ASTHMAEV a 0/1 variable if needed:
-   ASTHMAEV = if_else(ASTHMAEV == 2, 1, 0),
-    
-    # Create separate 0/1 columns for each smoking category
-    `Never Smoked`    = if_else(Smoking_Intensity == "Never Smoked", 1, 0),
-    `Former Smoker`   = if_else(Smoking_Intensity == "Former Smoker", 1, 0),
-    `Light Smoker`    = if_else(Smoking_Intensity == "Current Smoker (Light)", 1, 0),
-    `Moderate Smoker` = if_else(Smoking_Intensity == "Current Smoker (Moderate)", 1, 0),
-    `Heavy Smoker`    = if_else(Smoking_Intensity == "Current Smoker (Heavy)", 1, 0),
-    `Unknown`         = if_else(Smoking_Intensity == "Unknown", 1, 0)
+    education_numeric = if_else(education == "Bachelor+", 1, 0),  # Convert to 0/1
+    Never_Smoked = if_else(Smoking_Intensity == "Never Smoked", 1, 0),
+    Former_Smoker = if_else(Smoking_Intensity == "Former Smoker", 1, 0),
+    Light_Smoker = if_else(Smoking_Intensity == "Current Smoker (Light)", 1, 0),
+    Moderate_Smoker = if_else(Smoking_Intensity == "Current Smoker (Moderate)", 1, 0),
+    Heavy_Smoker = if_else(Smoking_Intensity == "Current Smoker (Heavy)", 1, 0),
+    Unknown = if_else(Smoking_Intensity == "Unknown", 1, 0)
   )
 
-# 2. Define all variables + optional definitions
+# 2. Update variable list with the numeric education variable
 variable_info <- tibble::tribble(
   ~Variable,             ~Definition,
   "ASTHMAEV",            "1 if ever diagnosed w/ asthma, else 0",
-  "Never Smoked",        "1 if never smoked, else 0",
-  "Former Smoker",       "1 if formerly smoked, else 0",
-  "Light Smoker",        "1 if currently a light smoker, else 0",
-  "Moderate Smoker",     "1 if currently a moderate smoker, else 0",
-  "Heavy Smoker",        "1 if currently a heavy smoker, else 0",
+  "Never_Smoked",        "1 if never smoked, else 0",
+  "Former_Smoker",       "1 if formerly smoked, else 0",
+  "Light_Smoker",        "1 if currently a light smoker, else 0",
+  "Moderate_Smoker",     "1 if currently a moderate smoker, else 0",
+  "Heavy_Smoker",        "1 if currently a heavy smoker, else 0",
   "Unknown",             "1 if smoking status is unknown",
   "CIGSDAY2_cleaned",    "Number of cigarettes smoked per day",
   "AGE",                 "Age of individual",
   "SEX",                 "1 is male, 2 is female",
-  "EDUC",                "1 is Bachelor+, 0 is no Bachelor, Education status)",
-  "GOTWAGE",             "1 is employed, 0 is not employed, Employment status",
+  "education_numeric",   "Proportion with Bachelor's degree or higher",
+  "GOTWAGE",             "1 is employed, 0 is not employed",
   "REGION",              "Region: 1.NE, 2.MW, 3.South, 4.West"
 )
 
-# 3. Define the function to get summary stats for one variable
+# 3. Modify the function to handle numeric and categorical variables properly
 get_summary_stats <- function(data, varname) {
   x <- data[[varname]]  
   obs <- sum(!is.na(x))
@@ -159,7 +157,9 @@ get_summary_stats <- function(data, varname) {
     the_min  <- round(min(x,  na.rm = TRUE), 2)
     the_max  <- round(max(x,  na.rm = TRUE), 2)
   } else {
-    the_mean <- NA
+    # If categorical, show proportions instead of mean/sd
+    prop <- round(mean(as.numeric(factor(x, exclude = NULL)), na.rm = TRUE), 2)
+    the_mean <- paste0(prop * 100, "%")  # Convert proportion to percentage
     the_sd   <- NA
     the_min  <- NA
     the_max  <- NA
@@ -174,27 +174,29 @@ get_summary_stats <- function(data, varname) {
   )
 }
 
-# 4. Build the summary table for each variable in variable_info
+# 4. Generate the summary table
 final_summary <- variable_info %>%
   rowwise() %>%
   mutate(stats = list(get_summary_stats(data_cleaned, Variable))) %>%
   tidyr::unnest(cols = c(stats)) %>%
   ungroup()
 
-# 5. Print with kable
+# 5. Print the table with kable
 kable_table <- final_summary %>%
   kable(
     format    = "html",
-    caption   = "Basic Summary Statistics (With Dummy Columns)",
-    col.names = c("Variable", "Definition", "Obs", "Mean", "SD", "Min", "Max")
+    caption   = "Basic Summary Statistics (With Dummy Columns & Education as Numeric)",
+    col.names = c("Variable", "Definition", "Obs", "Mean/Proportion", "SD", "Min", "Max")
   ) %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed"),
     full_width        = FALSE,
     position          = "center"
   )
-
+table(data_cleaned$region)
+prop.table(table(data_cleaned$region)) * 100
 print(kable_table)
+
 ```
 
 
