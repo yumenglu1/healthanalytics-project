@@ -31,10 +31,6 @@ invisible(lapply(required_packages, load_or_install))
 ## Load & Clean Data
 
 ```{r load_clean_data}
-# Load dataset
-ddi <- read_ipums_ddi("nhis_00012.xml")
-data <- read_ipums_micro(ddi)
-
 data_cleaned <- data %>%
   # Select only the relevant variables
   select(SMOKESTATUS2, ASTHMAEV, CIGSDAY2, AGE, SEX, EDUC, GOTWAGE, REGION) %>%
@@ -52,15 +48,15 @@ data_cleaned <- data %>%
       SMOKESTATUS2 %in% c(10, 11, 12, 13) ~ "Current Smoker",
       SMOKESTATUS2 == 20 ~ "Former Smoker",
       SMOKESTATUS2 == 30 ~ "Never Smoked",
-      SMOKESTATUS2 %in% c(40, 90) ~ "Unknown",
-      TRUE ~ "Unknown"
+      TRUE ~ NA_character_  # Remove "Unknown" by setting it to NA
     ),
     # For current smokers, categorize intensity based on cigarettes per day
     Smoking_Intensity = case_when(
       Smoking_Status == "Current Smoker" & CIGSDAY2 <= 5 ~ "Current Smoker (Light)",
       Smoking_Status == "Current Smoker" & CIGSDAY2 <= 10 ~ "Current Smoker (Moderate)",
       Smoking_Status == "Current Smoker" & CIGSDAY2 > 10 ~ "Current Smoker (Heavy)",
-      TRUE ~ Smoking_Status
+      Smoking_Status %in% c("Former Smoker", "Never Smoked") ~ Smoking_Status,
+      TRUE ~ NA_character_  # Set "Unknown" to NA
     ),
     # Recode asthma variable: 1 indicates an asthma attack
     Asthma_Attack = if_else(ASTHMAEV == 2, 1, 0),
@@ -97,8 +93,9 @@ data_cleaned <- data %>%
       TRUE ~ NA_character_
     ), levels = c("Northeast", "Midwest", "South", "West"))
   ) %>%
-  # Remove observations missing any control variable
-  filter(!is.na(age), !is.na(gender), !is.na(education), !is.na(income), !is.na(region)) %>%
+  # Remove observations missing any control variable or unknown smoking intensity
+  filter(!is.na(age), !is.na(gender), !is.na(education), !is.na(income), 
+         !is.na(region), !is.na(Smoking_Intensity)) %>%
   # Set reference categories for regression analyses
   mutate(
     Smoking_Intensity = relevel(factor(Smoking_Intensity), ref = "Never Smoked"),
@@ -106,6 +103,7 @@ data_cleaned <- data %>%
     income = relevel(income, ref = "No"),
     region = relevel(region, ref = "Northeast")
   )
+
 ```
 
 
@@ -125,7 +123,6 @@ data_cleaned <- data_cleaned %>%
     Light_Smoker = if_else(Smoking_Intensity == "Current Smoker (Light)", 1, 0),
     Moderate_Smoker = if_else(Smoking_Intensity == "Current Smoker (Moderate)", 1, 0),
     Heavy_Smoker = if_else(Smoking_Intensity == "Current Smoker (Heavy)", 1, 0),
-    Unknown = if_else(Smoking_Intensity == "Unknown", 1, 0)
   )
 
 # 2. Update variable list with the numeric education variable
