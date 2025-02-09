@@ -1,17 +1,16 @@
-# Introduction to Health Analytics Group Project template
-Outline for Introduction to Health Analytics student group project
+Introduction 
 
-## Setup Instructions
-1. One person from the group should:
-    - Fork this repository by following instructions [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo). Make sure you rename it!
-    - Add the other members of your team to the repository by following the instructions [here](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/inviting-collaborators-to-a-personal-repository).
+Asthma affects over 300 million people worldwide (Global Initiative for Asthma, 2023). Its etiology involves a complex interaction between genetics and environmental exposures (Kumari & Nair, 2021). Despite extensive research, the specific impact of smoking—an important environmental factor—on asthma remains controversial (Polosa & Thomson, 2013). 
 
-2. All members of the group should then:
-    - Sign in to Github and Github Desktop
-    - Clone the forked repository to your local computer and open in Github Desktop by following the instructions [here](https://docs.github.com/en/desktop/adding-and-cloning-repositories/cloning-a-repository-from-github-to-github-desktop).
-    - Make a change to your local copy of the repo (e.g. add a test file), commit that change and then push to the master using the instructions [here](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop). Ignore the information about branches - for now you can just work on the main branch.
+Several studies have explored the relationship between smoking and asthma, with mixed findings. Some suggest smoking exacerbates symptoms, increases attacks, and raises hospitalization risk (Jayes et al., 2016; Bellou et al., 2022), while others, after adjusting for factors like socioeconomic status, find a non-significant or weakened relationship (Hancox et al., 2016; Cerveri et al., 2012). These discrepancies may result from inconsistent control of key variables, such as age, gender, income, and geography, which influence both asthma severity and smoking behavior. 
 
-Data Used in This Project
+Adding to the concern, is that individuals with asthma have been found to smoke at rates similar to or higher than the general population. The WHO reports that smoking prevalence among asthmatics is comparable to non-asthmatics (To et al., 2012), while the CDC states 21% of U.S. asthmatics smoke, compared to 17% of non-asthmatics (CDC, 2013). Rates are higher in the Midwest, South, and among younger asthmatics (27.6%) compared to non-asthmatics (20.4%) (ASH, 2015).  
+
+Given that consensus on the relationship strength between smoking and asthma is still developing, this paper aims to provide deeper insights on the causal inferences on the smoking-asthma relationship. The central research question of this study is:  
+
+What is the impact of smoking on asthma in the U.S.?  
+
+Data Used in This Project:
 
 This project analyzes the relationship between cigarette smoking status and asthma attacks using data from the IPUMS NHIS (National Health Interview Survey).
 
@@ -26,7 +25,7 @@ Countries
 	•	The NHIS dataset is collected by the U.S. National Center for Health Statistics (NCHS) and covers a representative sample of the U.S. population.
 
 Years
-	•	The dataset includes data from [INSERT YEAR RANGE YOU USED, e.g., 2015-2022].
+	•	The dataset includes data from 2022 - 2023
 
 How to Access the Data
 
@@ -39,4 +38,4 @@ To access the IPUMS NHIS dataset:
 
 This dataset is publicly available for academic and research purposes.
 ## Description of how to run the code
-Here you should explain how someone could replicate the analysis in your report. If there are several code files, explain what each of them does.
+Please open RStudio, and open code.rmd and run each block sequentially
