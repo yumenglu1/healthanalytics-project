@@ -6,7 +6,6 @@ output: html_document
 ---
 
 ## Initialization & Setup
-
 ```{r initialization, include=FALSE}
 # Set global chunk options: show code but hide messages and warnings
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
@@ -108,11 +107,8 @@ data_cleaned <- data %>%
 
 
 
-##Table experiment
+##Descriptive Statistics Table
 ```{r summary_table_with_dummies, message=FALSE, warning=FALSE}
-library(dplyr)
-library(kableExtra)
-library(tidyr)
 
 # 1. Convert categorical education to numeric for mean calculations
 data_cleaned <- data_cleaned %>%
@@ -201,7 +197,6 @@ print(kable_table)
 
 
 ## Visualization
-
 ```{r visualization, message=FALSE, warning=FALSE}
 library(ggplot2)
 
